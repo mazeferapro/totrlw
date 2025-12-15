@@ -1,0 +1,11 @@
+ENT.Type = 'anim'
+ENT.Base = 'base_gmodentity'
+ENT.PrintName = 'Шкаф'
+ENT.Author = 'Kot'
+ENT.Contact = ''
+ENT.Purpose = ''
+ENT.Instructions = ''
+ENT.Spawnable = true
+ENT.AdminSpawnable = false
+ENT.Category = 'ROTR | Утилиты'
+ENT.noDrag = true 

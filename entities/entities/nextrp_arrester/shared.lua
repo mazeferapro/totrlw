@@ -1,0 +1,12 @@
+ENT.Type = 'anim'
+ENT.Type = "ai"
+ENT.Base = 'base_gmodentity'
+ENT.Contact = ''
+ENT.Purpose = ''
+ENT.Instructions = ''
+ENT.PrintName = "Arrester"
+ENT.Author= "Kitsune"
+ENT.Spawnable = true
+ENT.AdminSpawnable = true
+ENT.Category = 'Kitsune'
+ENT.RenderGroup = RENDERGROUP_BOTH

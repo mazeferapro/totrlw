@@ -1,0 +1,13 @@
+ENT.Type = 'anim'
+ENT.Base = 'base_gmodentity'
+ENT.PrintName = 'Новогодний подарок'
+ENT.Author = 'Kot'
+ENT.Contact = ''
+ENT.Purpose = ''
+ENT.Instructions = ''
+ENT.Spawnable = true
+ENT.AdminSpawnable = false
+ENT.Category = 'ROTR | Новый Год'
+ENT.Editable = false
+ENT.Carry = false
+ENT.noDrag = true 

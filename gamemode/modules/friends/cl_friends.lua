@@ -1,0 +1,58 @@
+function NextRP.Friends:MainFrame()
+    self.Code = LocalPlayer():GetNVar('nrp_referalcode')
+    local MainFrame = vgui.Create('PawsUI.Frame')
+    MainFrame:SetTitle('Пригласи друга!')
+    MainFrame:SetSize(400, 240)
+    MainFrame:MakePopup()
+    MainFrame:Center() 
+    MainFrame:ShowSettingsButton(false)
+    MainFrame:TDLib():On('Paint', function(s, w, h)
+        draw.SimpleText(self.Code or 'Генирируем...', 'font_sans_35', w * .5, 55, nil, TEXT_ALIGN_CENTER)
+        draw.SimpleText('Введёный код даёт 50 CRotRов Вам и', 'font_sans_21', w * .5, 180, nil, TEXT_ALIGN_CENTER)
+        draw.SimpleText(' 25 Вашему другу.', 'font_sans_21', w * .5, 200, nil, TEXT_ALIGN_CENTER)
+    end)
+
+    local myCode = vgui.Create('DButton', MainFrame) 
+    myCode:SetPos(0, 100) 
+    myCode:SetSize(250, 30)
+    myCode:CenterHorizontal()
+    myCode:TDLib() 
+        :ClearPaint()
+        :Background(NextRP.Style.Theme.Background)
+        :FadeHover()
+        :BarHover(NextRP.Style.Theme.Accent)
+        :CircleClick(NextRP.Style.Theme.AlphaWhite)
+        :Text('Скопировать мой код', 'font_sans_26')
+        :On('DoClick', function()
+            if self.Code then
+                SetClipboardText(self.Code)
+            end
+        end) 
+
+    local enterCode = vgui.Create('DButton', MainFrame)
+    enterCode:SetPos(0, 140)
+    enterCode:SetSize(250, 30) 
+    enterCode:CenterHorizontal()
+    enterCode:SetDisabled(LocalPlayer():GetNVar('nrp_referalcodeapplied') ~= false)
+    enterCode:TDLib() 
+        :ClearPaint()
+        :Background(NextRP.Style.Theme.Background)
+        :FadeHover()
+        :BarHover(NextRP.Style.Theme.Accent)
+        :CircleClick(NextRP.Style.Theme.AlphaWhite)
+        :Text(enterCode:GetDisabled() and 'Код уже введён' or 'Ввести код друга', 'font_sans_26')
+        :SetRemove(MainFrame)
+        :On('DoClick', function()
+            NextRP:QuerryText(QUERY_MAT_QUESTION, NextRP.Style.Theme.Accent, 'Введите код друга.\nПосле того как код будет применён Вы получите 25 CRotRов на донат счёт.\n\nКод можно ввести только один раз!', '', 'Подтвердить!', function(sValue)
+                netstream.Start('NextRP::ApplyReferalCode', sValue)
+            end)
+        end) 
+
+    if not self.Code then
+        netstream.Start('NextRP::GenerateReferalCode', LocalPlayer())
+    end
+end
+
+netstream.Hook('NextRP::SendGeneratedCode', function(sCode)
+    NextRP.Friends.Code = sCode
+end)

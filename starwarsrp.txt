@@ -1,0 +1,16 @@
+"starwarsrp"
+{
+    "base"          "base"
+    
+    "title"         "StarWarsRP"
+    "version"       "3.3.5"
+
+    "category"      "rp"
+
+    "maps"          ""
+    "menusystem"    "0"
+
+    "author_name"   "Raven"
+    "author_email"  "Spetrik.SP@gmail.com"
+    "author_url"    "https://discord.gg/c8y6w7RnuW"
+}

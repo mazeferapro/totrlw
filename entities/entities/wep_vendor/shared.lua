@@ -1,0 +1,11 @@
+ENT.Type = 'anim'
+ENT.Base = 'base_gmodentity'
+ENT.PrintName = 'Оруженый вендор(WIP)'
+ENT.Author = ''
+ENT.Contact = ''
+ENT.Purpose = ''
+ENT.Instructions = ''
+ENT.Spawnable = true
+ENT.AdminSpawnable = false
+ENT.Category = 'Kitsune'
+ENT.noDrag = true

@@ -1,0 +1,12 @@
+ENT.Type = 'anim'
+ENT.Type = "ai"
+ENT.Base = 'base_gmodentity'
+ENT.Contact = ''
+ENT.Purpose = ''
+ENT.Instructions = ''
+ENT.PrintName = "Обмен кристаллов"
+ENT.Author= "Kitsune"
+ENT.Spawnable = true
+ENT.AdminSpawnable = false
+ENT.Category = 'Kitsune Entities'
+ENT.RenderGroup = RENDERGROUP_BOTH
