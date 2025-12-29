@@ -51,6 +51,491 @@ TEAM_CADET = NextRP.createJob('Кадет', {
 
 ------------------------------------------------------------------------------------]]
 
+TEAM_501TRP = NextRP.createJob('Боец 501-го', {
+    id = '501trp',
+    model = {'models/501st/trooper.mdl'},
+    color = Color(0,102,204),
+    default_rank = 'TRP',
+    ranks = {
+        ['TRP'] = {
+            sortOrder = 1,
+            model = {
+                'models/501st/trooper.mdl',
+            },
+            hp = 250,
+            ar = 50,
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15a_stun',
+                    'arccw_k_nade_thermal',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Клон Рекрут',
+            whitelist = false,
+        },
+        ['PVT'] = {
+            sortOrder = 2,
+            model = {
+                'models/501st/trooper.mdl',
+            },
+            hp = 250,
+            ar = 50,
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15a_stun',
+                    'arccw_k_nade_thermal',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Рядовой',
+            whitelist = false,
+        },
+        ['PV2'] = {
+            sortOrder = 4,
+            model = {
+                'models/501st/trooper.mdl',
+            },
+            hp = 250,
+            ar = 50,
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15a_stun',
+                    'arccw_k_nade_thermal',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Рядовой Второго Класса',
+            whitelist = false,
+        },
+        ['PV1'] = {
+            sortOrder = 3,
+            model = {
+                'models/501st/trooper.mdl',
+            },
+            hp = 250,
+            ar = 50,
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15a_stun',
+                    'arccw_k_nade_thermal',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Рядовой Первого Класса',
+            whitelist = false,
+        },
+        ['SPC'] = {
+            sortOrder = 5,
+            model = {
+                'models/501st/trooper.mdl',
+            },
+            hp = 250,
+            ar = 50,
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15a_stun',
+                    'arccw_k_nade_thermal',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Специалист',
+            whitelist = false,
+        },
+        ['CPL'] = {
+            sortOrder = 6,
+            model = {
+                'models/501st/trooper.mdl',
+            },
+            hp = 250,
+            ar = 50,
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15a_stun',
+                    'arccw_k_nade_thermal',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Капрал',
+            whitelist = false,
+        },
+        ['JSG'] = {
+            sortOrder = 7,
+            model = {
+                'models/501st/trooper.mdl',
+            },
+            hp = 250,
+            ar = 50,
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15a_stun',
+                    'arccw_k_nade_thermal',
+                    'realistic_hook',
+                    'mortar_range_finder',
+                },
+            },
+            fullRank = 'Младший Сержант',
+            whitelist = false,
+        },
+        ['SGT'] = {
+            sortOrder = 8,
+            model = {
+                'models/501st/trooper.mdl',
+            },
+            hp = 250,
+            ar = 50,
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15a_stun',
+                    'arccw_k_nade_thermal',
+                    'realistic_hook',
+                    'mortar_range_finder',
+                },
+            },
+            fullRank = 'Сержант',
+            whitelist = false,
+        },
+        ['SSG'] = {
+            sortOrder = 9,
+            model = {
+                'models/501st/trooper.mdl',
+            },
+            hp = 250,
+            ar = 50,
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15a_stun',
+                    'arccw_k_nade_thermal',
+                    'realistic_hook',
+                    'mortar_range_finder',
+                },
+            },
+            fullRank = 'Старший Сержант',
+            whitelist = false,
+        },
+        ['JLT'] = {
+            sortOrder = 10,
+            model = {
+                'models/501st/officer.mdl',
+            },
+            hp = 250,
+            ar = 55,
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15a_stun',
+                    'arccw_k_nade_thermal',
+                    'realistic_hook',
+                    'mortar_range_finder',
+                },
+            },
+            fullRank = 'Младший Лейтенант',
+            whitelist = false,
+        },
+        ['LT'] = {
+            sortOrder = 11,
+            model = {
+                'models/501st/officer.mdl',
+            },
+            hp = 250,
+            ar = 55,
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15a_stun',
+                    'arccw_k_nade_thermal',
+                    'realistic_hook',
+                    'mortar_range_finder',
+                },
+            },
+            fullRank = 'Лейтенант',
+            whitelist = false,
+        },
+        ['SLT'] = {
+            sortOrder = 12,
+            model = {
+                'models/501st/officer.mdl',
+            },
+            hp = 250,
+            ar = 55,
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15a_stun',
+                    'arccw_k_nade_thermal',
+                    'realistic_hook',
+                    'mortar_range_finder',
+                },
+            },
+            fullRank = 'Старший Лейтенант',
+            whitelist = false,
+        },
+        ['CPT'] = {
+            sortOrder = 13,
+            model = {
+                'models/501st/rex.mdl'
+            },
+            hp = 250,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_cgi_k_akimbo_dc17_ext',
+                },
+                ammunition = {
+                    'arccw_k_dc15s',
+                    'arccw_k_nade_thermal',
+                    'jet_mk5',
+                    'arccw_k_z6adv',
+                    'arccw_k_dc17ext_akimbo',
+                    'realistic_hook',
+                    'mortar_range_finder',
+                },
+            },
+            fullRank = 'Капитан',
+            whitelist = false,
+        },
+    },
+    flags = {
+        ['Медик'] = {
+            id = 'MED',
+            model = {
+                'models/501st/medic.mdl',
+            },
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dp24',
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_k_nade_bacta',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'weapon_med_scanner',
+                    'realistic_hook',
+                },
+            },
+            hp = 200,
+            ar = 40,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+        ['Тяж боец'] = {
+            id = 'HT',
+            model = {
+                'models/501st/heavy.mdl',
+            },
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_heavy',
+                },
+                ammunition = {
+                    'arccw_cgi_k_z6adv',
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_501shield',
+                    'weapon_squadshield_arm',
+                    'arccw_k_launcher_rps6',
+                    'realistic_hook',
+                },
+            },
+            hp = 400,
+            ar = 65,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+        ['Пилот'] = {
+            id = 'PIL',
+            model = {
+                'models/501st/pilot.mdl'
+            },
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_cgi_k_dp23',
+                    'arccw_k_nade_thermal',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                    'fort_datapad',
+                    'realistic_hook',
+                },
+            },
+            hp = 200,
+            ar = 40,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+        ['Инженер'] = {
+            id = 'ENG',
+            model = {
+                'models/501st/engineer.mdl',
+            },
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_cgi_k_dp23',
+                    'arccw_k_nade_thermal',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                    'fort_datapad',
+                    'turret_placer',
+                    'arccw_k_nade_sequencecharger',
+                    'arccw_k_nade_antitankmine',
+                    'defuser_bomb',
+                    'turret_placer',
+                    'realistic_hook',
+                },
+            },
+            hp = 250,
+            ar = 45,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+        ['ARF'] = {
+            id = 'ARF',
+            model = {
+                'models/501st/arf.mdl',
+            },
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_thermal',
+                    'realistic_hook',
+                    'sv_datapad',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_flashbang',
+                    'arccw_sops_vibroknife',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_decoy',
+                    'arccw_k_nade_sonar',
+                    'jet_mk2',
+                },
+            },
+            hp = 250,
+            ar = 35,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+        ['Десантник'] = {
+            id = 'PAR',
+            model = {
+                'models/501st/officer.mdl',
+            },
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dp24',
+                    'arccw_k_nade_thermal',
+                    'jet_mk5',
+                    'arccw_k_nade_impact',
+                    'arccw_k_nade_smoke',
+                    'arccw_sops_vibroknife',
+                    'arccw_k_nade_sequencecharger',
+                    'realistic_hook',
+                },
+            },
+            hp = 250,
+            ar = 45,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+        ['ARC'] = {
+            id = 'ARC',
+            model = {
+                'models/501st/arc.mdl',
+            },
+            weapon = {
+                default = {
+                    'arccw_cgi_k_dc17_stun',
+                },
+                ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_k_dc15s_stun',
+                    'arccw_k_dc15s_grenadier',
+                    'arccw_cgi_k_westarm5',
+                    'arccw_k_nade_thermal',
+                    'jet_mk5',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_sequencecharger',
+                    'arccw_sops_vibroknife',
+                    'arccw_cgi_k_akimbo_dc17_heavy',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_sonar',
+                    'weapon_squadshield_arm',
+                    'arccw_k_nade_bacta',
+                    'weapon_defibrillator',
+                    'defuser_bomb',
+                    'realistic_hook',
+                    'mortar_range_finder',
+                },
+            },
+            hp = 500,
+            ar = 65,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+    },
+    type = TYPE_GAR,
+    control = CONTROL_GAR,
+    start = false,
+    walkspead = 100,
+    runspead = 250,
+    Salary = 100,
+    category = '501-й Легион'
+})
+
 
 TEAM_CTRP = NextRP.createJob('Боец 104-го', {
     id = 'ctrp',
@@ -193,6 +678,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'arccw_k_dc15a',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             fullRank = 'Младший Сержант',
@@ -213,6 +699,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'arccw_k_dc15a',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             fullRank = 'Сержант',
@@ -233,6 +720,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'arccw_k_dc15a',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             fullRank = 'Старший Сержант',
@@ -253,6 +741,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'arccw_k_dc15a',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             fullRank = 'Младший Лейтенант',
@@ -273,6 +762,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'arccw_k_dc15a',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             fullRank = 'Лейтенант',
@@ -293,6 +783,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'arccw_k_dc15a',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             fullRank = 'Старший Лейтенант',
@@ -317,6 +808,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'arccw_k_z6adv',
                     'arccw_k_dc17ext_akimbo',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             fullRank = 'Капитан',
@@ -339,6 +831,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'jet_mk5',
                     'arccw_k_z6adv',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             fullRank = 'Майор',
@@ -361,6 +854,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'jet_mk5',
                     'arccw_k_z6adv',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             fullRank = 'Полковник',
@@ -383,6 +877,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'jet_mk5',
                     'arccw_k_z6adv',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             fullRank = 'Клон-Коммандер',
@@ -405,6 +900,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'jet_mk5',
                     'arccw_k_z6adv',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             fullRank = 'Старший Клон-Коммандер',
@@ -427,6 +923,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'jet_mk5',
                     'arccw_k_z6adv',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             fullRank = 'Маршал коммандер',
@@ -554,6 +1051,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'weapon_officerboost_laststand',
                     'waypoint_designator',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             hp = 400,
@@ -655,10 +1153,11 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                 },
                 ammunition = {
                     'arccw_k_dc15s',
-                    'arccw_eq_mortar',
+                    'mortar_constructor',
                     'arccw_k_nade_thermal',
                     'fort_datapad',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             hp = 250,
@@ -687,6 +1186,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'arccw_eq_designator',
                     'waypoint_designator',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             hp = 200,
@@ -860,6 +1360,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'weapon_defibrillator',
                     'defuser_bomb',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             hp = 500,
@@ -893,6 +1394,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'defuser_bomb',
                     'realistic_hook',
                     'arccw_k_launcher_plx1',
+                    'mortar_range_finder',
                 },
             },
             hp = 500,
@@ -922,6 +1424,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'arccw_k_nade_dioxis',
                     'arccw_k_nade_bacta',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             hp = 270,
@@ -955,6 +1458,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'arccw_k_nade_bacta',
                     'weapon_defibrillator',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             hp = 270,
@@ -984,6 +1488,7 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
                     'weapon_officerboost_normal',
                     'waypoint_designator',
                     'realistic_hook',
+                    'mortar_range_finder',
                 },
             },
             hp = 500,
@@ -3403,11 +3908,11 @@ TEAM_26TH = NextRP.createJob('Боец 26-й роты', {
             weapon = {
                 ammunition = {
                     'arccw_k_westarm5',
+                    'arccw_sops_galactic_galaar15',
                     'arccw_k_dp24c',
-                    'arccw_k_dc15x',
                     'arccw_iqa11',
                     'waypoint_designator',
-                    'jet_mk5',
+                    'jet_mk6',
                     'weapon_defibrillator',
                     'weapon_bactainjector',
                     'arccw_k_nade_bacta',
@@ -3421,6 +3926,36 @@ TEAM_26TH = NextRP.createJob('Боец 26-й роты', {
             },
             hp = 250,
             ar = 65,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+        ['Salam'] = {
+            id = 'SLM',
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            weapon = {
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+            },
+            hp = 500,
+            ar = 70,
             replaceWeapon = true,
             replaceHPandAR = true,
             replaceModel = true,
@@ -3466,6 +4001,1506 @@ TEAM_26TH = NextRP.createJob('Боец 26-й роты', {
     runspead = 250,
     Salary = 100,
     category = '26-я рота «Ангелы»'
+})
+
+TEAM_26THRAZ = NextRP.createJob('ARF Raz', {
+    -- НЕОБХОДИМЫЕ НАСТРОЙКИ
+    id = '26thraz', -- УНИКАЛЬНЫЙ ID ПРОФЫ, без него вся система персонажей идёт нахуй
+    -- Модель(и)
+    model = {'models/212th_arfcmd/212th_arfcmd.mdl'},
+    color = Color(127, 143, 166),
+    -- Звания
+    default_rank = 'PVT',
+    ranks = {
+        ['PVT'] = {
+            -- Порядок сортировки, снизу вверх
+            sortOrder = 1,
+            -- Основные настройки
+            model = { -- Модели
+                        'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200, -- ХП
+            ar = 60, -- Армор
+            weapon = { -- Оружие
+                default = {'arccw_k_dc17s_dual'}, -- При спавне
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                } -- В оружейке
+            },
+            -- Форматирование
+            -- natoCode = 'OR-1',
+            fullRank = 'Рядовой',
+            -- Вайтлист
+            whitelist = false -- Может ли выдавать эту профу
+        },
+        ['PV2'] = {
+            sortOrder = 2,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Клон Рядовой Второго Класса',
+            whitelist = false,
+        },
+        ['PV1'] = {
+            sortOrder = 3,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Клон Рядовой Первого Класса',
+            whitelist = false,
+        },
+        ['SPC'] = {
+            sortOrder = 4,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Клон Специалист',
+            whitelist = false,
+        },
+        ['CPL'] = {
+            sortOrder = 5,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Клон Капрал',
+            whitelist = false,
+        },
+        ['JSG'] = {
+            sortOrder = 6,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Клон Младший Сержант',
+            whitelist = false,
+        },
+        ['SGT'] = {
+            sortOrder = 7,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Клон Сержант',
+            whitelist = false,
+        },
+        ['MSG'] = {
+            sortOrder = 7,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Клон Мастер Сержант',
+            whitelist = false,
+        },
+        ['SSG'] = {
+            sortOrder = 8,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Клон Штаб Сержант',
+            whitelist = false,
+        },
+        ['JLT'] = {
+            sortOrder = 9,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Клон Младший Лейтенант',
+            whitelist = false,
+        },
+        ['LT'] = {
+            sortOrder = 10,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Клон Лейтенант',
+            whitelist = false,
+        },
+        ['SLT'] = {
+            sortOrder = 11,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Клон Старший Лейтенант',
+            whitelist = false,
+        },
+        ['CPT'] = {
+            sortOrder = 12,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Клон Капитан',
+            whitelist = false,
+        },
+        ['MAJ'] = {
+            sortOrder = 13,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Майор',
+            whitelist = false,
+        },
+        ['COL'] = {
+            sortOrder = 14,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Полковник',
+            whitelist = false,
+        },
+        ['СС'] = {
+            sortOrder = 15,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Клон-Коммандер',
+            whitelist = true,
+        },
+        ['SCC'] = {
+            sortOrder = 16,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Старший Клон-Коммандер',
+            whitelist = true,
+        },
+        ['MC'] = {
+            sortOrder = 17,
+            model = {
+                'models/212th_arfcmd/212th_arfcmd.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s_dual',
+                },
+                ammunition = {
+                    'arccw_k_dc15s_stun',
+                    'arccw_sops_republic_t702',
+                    'arccw_cgi_k_dc19',
+                    'arccw_k_nade_thermal',
+                    'arccw_cgi_k_rps6',
+                    'jet_mk5',
+                    'realistic_hook',
+                },
+            },
+            fullRank = 'Маршал коммандер',
+            whitelist = true,
+        },
+     },
+    flags = {
+    },
+
+    -- ТИПы и КОНТРОЛы
+    type = TYPE_JEDI, -- ТИП, могут быть TYPE_USA, TYPE_RUSSIA, TYPE_TERROR, TYPE_OTHER, TYPE_ADMIN, TYPE_RPROLE   control = CONTROL_NATO
+    control = CONTROL_GAR, -- КОНТРОЛ, можеть быть CONTROL_NATO, CONTROL_TERRORISTS, CONTROL_HEADHUNTERS, CONTROL_NONE
+    -- Стартовая
+    start = false,
+    Salary = 100,
+    -- Категория
+    category = 'Сводная рота'
+})
+
+TEAM_MCENI = NextRP.createJob('ENG Enigma', {
+    -- НЕОБХОДИМЫЕ НАСТРОЙКИ
+    id = 'mceni', -- УНИКАЛЬНЫЙ ID ПРОФЫ, без него вся система персонажей идёт нахуй
+    -- Модель(и)
+    model = {'models/sl_juggernaut/sl_juggernaut.mdl'},
+    color = Color(127, 143, 166),
+    -- Звания
+    default_rank = 'PVT',
+    ranks = {
+        ['PVT'] = {
+            -- Порядок сортировки, снизу вверх
+            sortOrder = 1,
+            -- Основные настройки
+            model = { -- Модели
+                        'models/cxtrooper/models/cxtrooper.mdl',
+                        'models/51stcompany/engineertrooper.mdl',
+                        'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200, -- ХП
+            ar = 60, -- Армор
+            weapon = { -- Оружие
+                default = {'arccw_k_dc17s'}, -- При спавне
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                } -- В оружейке
+            },
+            -- Форматирование
+            -- natoCode = 'OR-1',
+            fullRank = 'Рядовой',
+            -- Вайтлист
+            whitelist = false -- Может ли выдавать эту профу
+        },
+        ['PV2'] = {
+            sortOrder = 2,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Клон Рядовой Второго Класса',
+            whitelist = false,
+        },
+        ['PV1'] = {
+            sortOrder = 3,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Клон Рядовой Первого Класса',
+            whitelist = false,
+        },
+        ['SPC'] = {
+            sortOrder = 4,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Клон Специалист',
+            whitelist = false,
+        },
+        ['CPL'] = {
+            sortOrder = 5,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Клон Капрал',
+            whitelist = false,
+        },
+        ['JSG'] = {
+            sortOrder = 6,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Клон Младший Сержант',
+            whitelist = false,
+        },
+        ['SGT'] = {
+            sortOrder = 7,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Клон Сержант',
+            whitelist = false,
+        },
+        ['MSG'] = {
+            sortOrder = 7,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Клон Мастер Сержант',
+            whitelist = false,
+        },
+        ['SSG'] = {
+            sortOrder = 8,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Клон Штаб Сержант',
+            whitelist = false,
+        },
+        ['JLT'] = {
+            sortOrder = 9,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Клон Младший Лейтенант',
+            whitelist = false,
+        },
+        ['LT'] = {
+            sortOrder = 10,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Клон Лейтенант',
+            whitelist = false,
+        },
+        ['SLT'] = {
+            sortOrder = 11,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Клон Старший Лейтенант',
+            whitelist = false,
+        },
+        ['CPT'] = {
+            sortOrder = 12,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Клон Капитан',
+            whitelist = false,
+        },
+        ['MAJ'] = {
+            sortOrder = 13,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Майор',
+            whitelist = false,
+        },
+        ['COL'] = {
+            sortOrder = 14,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Полковник',
+            whitelist = false,
+        },
+        ['СС'] = {
+            sortOrder = 15,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Клон-Коммандер',
+            whitelist = true,
+        },
+        ['SCC'] = {
+            sortOrder = 16,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Старший Клон-Коммандер',
+            whitelist = true,
+        },
+        ['MC'] = {
+            sortOrder = 17,
+            model = {
+                'models/cxtrooper/models/cxtrooper.mdl',
+                'models/51stcompany/engineertrooper.mdl',
+                'models/sl_juggernaut/sl_juggernaut.mdl',
+            },
+            hp = 200,
+            ar = 60,
+            weapon = {
+                default = {
+                    'arccw_k_dc17s',
+                },
+                ammunition = {
+                    'arccw_k_dp24c',
+                    'arccw_cgi_k_dc15x',
+                    'arccw_k_nade_detonite',
+                    'arccw_k_nade_c14',
+                    'fort_datapad',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                },
+            },
+            fullRank = 'Маршал коммандер',
+            whitelist = true,
+        },
+     },
+    flags = {
+    },
+
+    -- ТИПы и КОНТРОЛы
+    type = TYPE_JEDI, -- ТИП, могут быть TYPE_USA, TYPE_RUSSIA, TYPE_TERROR, TYPE_OTHER, TYPE_ADMIN, TYPE_RPROLE   control = CONTROL_NATO
+    control = CONTROL_GAR, -- КОНТРОЛ, можеть быть CONTROL_NATO, CONTROL_TERRORISTS, CONTROL_HEADHUNTERS, CONTROL_NONE
+    -- Стартовая
+    start = false,
+    Salary = 100,
+    -- Категория
+    category = 'Сводная рота'
+})
+
+TEAM_SALAM = NextRP.createJob('HT Salam', {
+    -- НЕОБХОДИМЫЕ НАСТРОЙКИ
+    id = 'salam', -- УНИКАЛЬНЫЙ ID ПРОФЫ, без него вся система персонажей идёт нахуй
+    -- Модель(и)
+    model = {'models/aussiwozzi/cgi/md/212_re_imp.mdl'},
+    color = Color(127, 143, 166),
+    -- Звания
+    default_rank = 'PVT',
+    ranks = {
+        ['PVT'] = {
+            -- Порядок сортировки, снизу вверх
+            sortOrder = 1,
+            -- Основные настройки
+            model = { -- Модели
+                        'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500, -- ХП
+            ar = 70, -- Армор
+            weapon = { -- Оружие
+                default = {'arccw_k_dc17ext_akimbo'}, -- При спавне
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                } -- В оружейке
+            },
+            -- Форматирование
+            -- natoCode = 'OR-1',
+            fullRank = 'Рядовой',
+            -- Вайтлист
+            whitelist = false -- Может ли выдавать эту профу
+        },
+        ['PV2'] = {
+            sortOrder = 2,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Клон Рядовой Второго Класса',
+            whitelist = false,
+        },
+        ['PV1'] = {
+            sortOrder = 3,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Клон Рядовой Первого Класса',
+            whitelist = false,
+        },
+        ['SPC'] = {
+            sortOrder = 4,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Клон Специалист',
+            whitelist = false,
+        },
+        ['CPL'] = {
+            sortOrder = 5,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Клон Капрал',
+            whitelist = false,
+        },
+        ['JSG'] = {
+            sortOrder = 6,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Клон Младший Сержант',
+            whitelist = false,
+        },
+        ['SGT'] = {
+            sortOrder = 7,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Клон Сержант',
+            whitelist = false,
+        },
+        ['MSG'] = {
+            sortOrder = 7,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Клон Мастер Сержант',
+            whitelist = false,
+        },
+        ['SSG'] = {
+            sortOrder = 8,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Клон Штаб Сержант',
+            whitelist = false,
+        },
+        ['JLT'] = {
+            sortOrder = 9,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Клон Младший Лейтенант',
+            whitelist = false,
+        },
+        ['LT'] = {
+            sortOrder = 10,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Клон Лейтенант',
+            whitelist = false,
+        },
+        ['SLT'] = {
+            sortOrder = 11,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Клон Старший Лейтенант',
+            whitelist = false,
+        },
+        ['CPT'] = {
+            sortOrder = 12,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Клон Капитан',
+            whitelist = false,
+        },
+        ['MAJ'] = {
+            sortOrder = 13,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Майор',
+            whitelist = false,
+        },
+        ['COL'] = {
+            sortOrder = 14,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Полковник',
+            whitelist = false,
+        },
+        ['СС'] = {
+            sortOrder = 15,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Клон-Коммандер',
+            whitelist = true,
+        },
+        ['SCC'] = {
+            sortOrder = 16,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Старший Клон-Коммандер',
+            whitelist = true,
+        },
+        ['MC'] = {
+            sortOrder = 17,
+            model = {
+                'models/aussiwozzi/cgi/md/212_re_imp.mdl',
+            },
+            hp = 500,
+            ar = 70,
+            weapon = {
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                },
+                ammunition = {
+                    'arccw_k_sb2',
+                    'arccw_sops_empire_tl50',
+                    'jet_mk5',
+                    'weapon_bactainjector',
+                    'arccw_iqa11',
+                    'jet_mk6',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_smoke',
+                    'arccw_k_nade_c14',
+                },
+            },
+            fullRank = 'Маршал коммандер',
+            whitelist = true,
+        },
+     },
+    flags = {
+    },
+
+    -- ТИПы и КОНТРОЛы
+    type = TYPE_JEDI, -- ТИП, могут быть TYPE_USA, TYPE_RUSSIA, TYPE_TERROR, TYPE_OTHER, TYPE_ADMIN, TYPE_RPROLE   control = CONTROL_NATO
+    control = CONTROL_GAR, -- КОНТРОЛ, можеть быть CONTROL_NATO, CONTROL_TERRORISTS, CONTROL_HEADHUNTERS, CONTROL_NONE
+    -- Стартовая
+    start = false,
+    Salary = 100,
+    -- Категория
+    category = 'Сводная рота'
 })
 
 TEAM_SHDW = NextRP.createJob('Корпус Теней', {
@@ -3973,6 +6008,7 @@ TEAM_SHDW = NextRP.createJob('Корпус Теней', {
                     'weapon_bactainjector',
                     'sv_datapad',
                     'realistic_hook',
+                    'jet_mk5',
                 },
             },
             hp = 550,
@@ -4016,6 +6052,53 @@ TEAM_SHDW = NextRP.createJob('Корпус Теней', {
     control = CONTROL_GAR, -- КОНТРОЛ, можеть быть CONTROL_NATO, CONTROL_TERRORISTS, CONTROL_HEADHUNTERS, CONTROL_NONE
     -- Стартовая
     start = false,
+    walkspead = 100,
+    runspead = 250,
+    -- Категория
+    category = 'Корпус Теней'
+})
+
+TEAM_BLADE = NextRP.createJob('BladeWolf', {
+    -- НЕОБХОДИМЫЕ НАСТРОЙКИ
+    id = 'blade', -- УНИКАЛЬНЫЙ ID ПРОФЫ, без него вся система персонажей идёт нахуй
+    -- Модель(и)
+    model = {'models/mgrr/flaymi/bladewolff.mdl'},
+    color = Color(0, 0, 0),
+    -- Звания
+    default_rank = 'Blade',
+    ranks = {
+        ['Blade'] = {
+            -- Порядок сортировки, снизу вверх
+            sortOrder = 1,
+            -- Основные настройки
+            model = { -- Модели
+                'models/mgrr/flaymi/bladewolff.mdl'
+            },
+            hp = 250, -- ХП
+            ar = 75, -- Армор
+            weapon = { -- Оружие
+                default = {
+                    'weapon_standardswordart',
+                    'weapon_fists',
+                    'arccw_sops_vibroknife',}, -- При спавне
+                ammunition = {} -- В оружейке
+            },
+            -- Форматирование
+            -- natoCode = 'OR-1',
+            fullRank = 'Blade Wolfs',
+            speed = {500, 500}, -- Значения скорости: {walkSpeed, runSpeed}
+            -- Вайтлист
+            whitelist = false -- Может ли выдавать эту профу
+        },
+    },
+    flags = {
+    },
+
+    -- ТИПы и КОНТРОЛы
+    type = TYPE_GAR, -- ТИП, могут быть TYPE_USA, TYPE_RUSSIA, TYPE_TERROR, TYPE_OTHER, TYPE_ADMIN, TYPE_RPROLE   control = CONTROL_NATO
+    control = CONTROL_GAR, -- КОНТРОЛ, можеть быть CONTROL_NATO, CONTROL_TERRORISTS, CONTROL_HEADHUNTERS, CONTROL_NONE
+    -- Стартовая
+    start = true,
     walkspead = 100,
     runspead = 250,
     -- Категория
@@ -4596,14 +6679,17 @@ TEAM_51TH = NextRP.createJob('Боец 51-й роты', {
 
 TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
     id = 'soso',
-    model = {'models/blueflame_st/blueflame_st.mdl'},
+    model = {'models/angel/angel.mdl'},
     color = Color(127,143,166),
     default_rank = 'PVT',
     ranks = {
         ['PVT'] = {
             sortOrder = 2,
             model = {
-                'models/blueflame_st/blueflame_st.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
             },
             hp = 530,
             ar = 60,
@@ -4619,7 +6705,10 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['PV2'] = {
             sortOrder = 3,
             model = {
-                'models/blueflame_st/blueflame_st.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
             },
             hp = 530,
             ar = 60,
@@ -4638,7 +6727,10 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['PV1'] = {
             sortOrder = 3,
             model = {
-                'models/blueflame_st/blueflame_st.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
             },
             hp = 530,
             ar = 60,
@@ -4657,7 +6749,10 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['SPC'] = {
             sortOrder = 3,
             model = {
-                'models/blueflame_st/blueflame_st.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
             },
             hp = 530,
             ar = 60,
@@ -4676,7 +6771,10 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['CPL'] = {
             sortOrder = 4,
             model = {
-                'models/blueflame_st/blueflame_st.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
             },
             hp = 530,
             ar = 60,
@@ -4695,7 +6793,10 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['JSG'] = {
             sortOrder = 5,
             model = {
-                'models/blueflame_st/blueflame_st.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
             },
             hp = 530,
             ar = 60,
@@ -4715,7 +6816,10 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['SGT'] = {
             sortOrder = 6,
             model = {
-                'models/blueflame_st/blueflame_st.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
             },
             hp = 530,
             ar = 60,
@@ -4735,7 +6839,10 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['SSG'] = {
             sortOrder = 7,
             model = {
-                'models/blueflame_st/blueflame_st.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
             },
             hp = 530,
             ar = 60,
@@ -4755,7 +6862,10 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['JLT'] = {
             sortOrder = 9,
             model = {
-                'models/blueflame_st/blueflame_st.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
             },
             hp = 530,
             ar = 60,
@@ -4775,7 +6885,10 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['LT'] = {
             sortOrder = 10,
             model = {
-                'models/blueflame_st/blueflame_st.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
             },
             hp = 530,
             ar = 60,
@@ -4795,7 +6908,10 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['SLT'] = {
             sortOrder = 11,
             model = {
-                'models/blueflame_st/blueflame_st.mdl'
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
             },
             hp = 530,
             ar = 60,
@@ -4815,7 +6931,10 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['CPT'] = {
             sortOrder = 12,
             model = {
-                'models/blueflame_st/blueflame_st.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
             },
             hp = 530,
             ar = 60,
@@ -4832,12 +6951,107 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
             fullRank = 'Капитан',
             whitelist = false,
         },
+        ['MAJ'] = {
+            sortOrder = 12,
+            model = {
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'weapon_cuff_elastic',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Майор',
+            whitelist = false,
+        },
+        ['COL'] = {
+            sortOrder = 12,
+            model = {
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'weapon_cuff_elastic',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Полковник',
+            whitelist = false,
+        },
+        ['CC'] = {
+            sortOrder = 12,
+            model = {
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'weapon_cuff_elastic',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Клон-Коммандер',
+            whitelist = false,
+        },
+        ['MC'] = {
+            sortOrder = 12,
+            model = {
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'weapon_cuff_elastic',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Маршал-Коммандер',
+            whitelist = false,
+        },
     },
     flags = {
         ['Медик'] = {
             id = 'MED',
             model = {
-                'models/blueflame_med/blueflame_med.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
                 'models/navy/gnavymedic.mdl',
             },
             weapon = {
@@ -4863,7 +7077,7 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['Командир'] = {
             id = 'COM',
             model = {
-                'models/blueflame_hvy/blueflame_hvy.mdl',
+                'models/enot/enot.mdl',
             },
             weapon = {
                 ammunition = {
@@ -4887,7 +7101,10 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['Инженер'] = {
             id = 'ENG',
             model = {
-                'models/blueflame_eng/blueflame_eng.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
             },
             weapon = {
                 ammunition = {
@@ -4915,7 +7132,10 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['Взломщик'] = {
             id = 'HAC',
             model = {
-                'models/blueflame_cmd/blueflame_cmd.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
             },
             weapon = {
                 ammunition = {
@@ -4939,7 +7159,10 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['Подрывник'] = {
             id = 'DEM',
             model = {
-                'models/blueflame_st/blueflame_st.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
             },
             weapon = {
                 ammunition = {
@@ -4966,7 +7189,553 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
         ['Разведчик'] = {
             id = 'SCT',
             model = {
-                'models/blueflame_spc/blueflame_spc.mdl',
+                'models/angel/angel.mdl',
+                'models/border/border.mdl',
+                'models/enarc/enarc.mdl',
+                'models/shadow/shadow.mdl',
+            },
+            weapon = {
+                ammunition = {
+                },
+                default = {
+                    'arccw_k_westarm5',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                    'realistic_hook',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_dc15x',
+                    'fort_datapad',
+                },
+            },
+            hp = 530,
+            ar = 65,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+    },
+    type = TYPE_GAR,
+    control = CONTROL_GAR,
+    start = false,
+    walkspead = 100,
+    runspead = 250,
+    Salary = 100,
+    category = 'ARC | Blue Flame'
+})
+
+TEAM_THETA = NextRP.createJob('Боец ARC Theta', {
+    id = 'theta',
+    model = {'models/angel/angel.mdl'},
+    color = Color(127,143,166),
+    default_rank = 'PVT',
+    ranks = {
+        ['PVT'] = {
+            sortOrder = 2,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                },
+            },
+            fullRank = 'Рядовой',
+            whitelist = false,
+        },
+        ['PV2'] = {
+            sortOrder = 3,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Рядовой Второго Класса',
+            whitelist = false,
+        },
+        ['PV1'] = {
+            sortOrder = 3,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Рядовой Первого Класса',
+            whitelist = false,
+        },
+        ['SPC'] = {
+            sortOrder = 3,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Специалист',
+            whitelist = false,
+        },
+        ['CPL'] = {
+            sortOrder = 4,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Капрал',
+            whitelist = false,
+        },
+        ['JSG'] = {
+            sortOrder = 5,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'weapon_cuff_elastic',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Младший Сержант',
+            whitelist = false,
+        },
+        ['SGT'] = {
+            sortOrder = 6,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'weapon_cuff_elastic',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Сержант',
+            whitelist = false,
+        },
+        ['SSG'] = {
+            sortOrder = 7,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'weapon_cuff_elastic',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Старший Сержант',
+            whitelist = false,
+        },
+        ['JLT'] = {
+            sortOrder = 9,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'weapon_cuff_elastic',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Младший Лейтенант',
+            whitelist = false,
+        },
+        ['LT'] = {
+            sortOrder = 10,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'weapon_cuff_elastic',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Лейтенант',
+            whitelist = false,
+        },
+        ['SLT'] = {
+            sortOrder = 11,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'weapon_cuff_elastic',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Старший Лейтенант',
+            whitelist = false,
+        },
+        ['CPT'] = {
+            sortOrder = 12,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'weapon_cuff_elastic',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Капитан',
+            whitelist = false,
+        },
+        ['MAJ'] = {
+            sortOrder = 12,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'weapon_cuff_elastic',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Майор',
+            whitelist = false,
+        },
+        ['COL'] = {
+            sortOrder = 12,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'weapon_cuff_elastic',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Полковник',
+            whitelist = false,
+        },
+        ['CC'] = {
+            sortOrder = 12,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'weapon_cuff_elastic',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Клон-Коммандер',
+            whitelist = false,
+        },
+        ['MC'] = {
+            sortOrder = 12,
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            hp = 530,
+            ar = 60,
+            weapon = {
+                default = {
+                },
+                ammunition = {
+                    'arccw_k_westarm5',
+                    'weapon_cuff_elastic',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                },
+            },
+            fullRank = 'Маршал-Коммандер',
+            whitelist = false,
+        },
+    },
+    flags = {
+        ['Медик'] = {
+            id = 'MED',
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+                'models/navy/gnavymedic.mdl',
+            },
+            weapon = {
+                ammunition = {
+                },
+                default = {
+                    'arccw_k_westarm5',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                    'arccw_k_dc15s',
+                    'arccw_k_nade_thermal',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                },
+            },
+            hp = 530,
+            ar = 60,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+        ['Инженер'] = {
+            id = 'ENG',
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            weapon = {
+                ammunition = {
+                },
+                default = {
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                    'arccw_k_dc15s',
+                    'arccw_k_nade_thermal',
+                    'weapon_squadshield_arm',
+                    'weapon_lvsrepair',
+                    'arccw_k_nade_bacta',
+                    'arccw_k_dp23',
+                    'turret_placer',
+                    'fort_datapad',
+                    'sv_datapad',
+                },
+            },
+            hp = 530,
+            ar = 65,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+        ['Взломщик'] = {
+            id = 'HAC',
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            weapon = {
+                ammunition = {
+                },
+                default = {
+                    'arccw_k_westarm5',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_launcher_smartlauncher',
+                    'keypad_cracker',
+                    'sv_datapad',
+                },
+            },
+            hp = 530,
+            ar = 60,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+        ['Подрывник'] = {
+            id = 'DEM',
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
+            },
+            weapon = {
+                ammunition = {
+                },
+                default = {
+                    'arccw_k_westarm5',
+                    'arccw_k_dc17ext_akimbo',
+                    'jet_mk5',
+                    'arccw_k_z6adv',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_launcher_smartlauncher',
+                    'arccw_k_nade_sequencecharger',
+                    'arccw_eq_mortar',
+                    'arccw_eq_designator',
+                    'fort_datapad',
+                },
+            },
+            hp = 550,
+            ar = 65,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+        ['Разведчик'] = {
+            id = 'SCT',
+            model = {
+                'models/arcspers/arcane.mdl',
+                'models/marauder/keen_arc.mdl',
+                'models/satoru/cgi/arcsquad/jaw.mdl',
+                'models/satoru/cgi/arcsquad/juck.mdl',
+                'models/satoru/cgi/arcsquad/vexer.mdl',
             },
             weapon = {
                 ammunition = {
@@ -5010,6 +7779,7 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
                     'fort_datapad',
                     'weapon_squadshield_arm',
                     'arccw_k_dc17_stun',
+                    'fort_datapad',
                 },
             },
             hp = 550,
@@ -5025,7 +7795,7 @@ TEAM_SOSO = NextRP.createJob('Боец ARC Blue Flame', {
     walkspead = 100,
     runspead = 250,
     Salary = 100,
-    category = 'ARC | Blue Flame'
+    category = 'ARC | Theta'
 })
 
 TEAM_RCRP = NextRP.createJob('Республиканский коммандос', {
@@ -5129,7 +7899,184 @@ TEAM_RCRP = NextRP.createJob('Республиканский коммандос'
             replaceHPandAR = true,
             replaceModel = false,
         },
+    },
 
+    -- ТИПы и КОНТРОЛы
+    type = TYPE_GAR, -- ТИП, могут быть TYPE_USA, TYPE_RUSSIA, TYPE_TERROR, TYPE_OTHER, TYPE_ADMIN, TYPE_RPROLE   control = CONTROL_NATO
+    control = CONTROL_GAR, -- КОНТРОЛ, можеть быть CONTROL_NATO, CONTROL_TERRORISTS, CONTROL_HEADHUNTERS, CONTROL_NONE
+    -- Стартовая
+    start = false,
+    walkspead = 150,
+    runspead = 300,
+    Salary = 100,
+    -- Категория
+    category = 'Республиканский коммандос'
+})
+
+TEAM_RCWF = NextRP.createJob('Werewolf', {
+    -- НЕОБХОДИМЫЕ НАСТРОЙКИ
+    id = 'rcww', -- УНИКАЛЬНЫЙ ID ПРОФЫ, без него вся система персонажей идёт нахуй
+    -- Модель(и)
+    model = { -- Модели
+                'models/zekora/zekora.mdl',
+            },
+    color = Color(127, 143, 166),
+    -- Звания
+    default_rank = 'RC',
+    ranks = {
+        ['RC'] = {
+            -- Порядок сортировки, снизу вверх
+            sortOrder = 1,
+            -- Основные настройки
+            model = { -- Модели
+                'models/zekora/zekora.mdl',
+            },
+            hp = 500, -- ХП
+            ar = 60, -- Армор
+            weapon = { -- Оружие
+                default = {
+                    'arccw_k_dc15sa',
+                }, -- При спавне
+                ammunition = {
+                    'arccw_k_dc17m_rifle_republic',
+                    'arccw_k_dc17m_shotgun_republic',
+                    'arccw_k_dc17m_sniper_republic',
+                    'realistic_hook',
+                } -- В оружейке
+            },
+            -- Форматирование
+            -- natoCode = 'OR-1',
+            fullRank = 'Республиканский коммандос отряда Werewolf',
+            -- Вайтлист
+            whitelist = false -- Может ли выдавать эту профу
+        }
+    },
+    flags = {
+        ['Медик'] = {
+            id = 'MED',
+            model = {
+                'models/manik/manik.mdl',
+            },
+            weapon = {
+                ammunition = {
+                    'arccw_k_dc17m_rifle_republic',
+                    'arccw_k_dc17m_shotgun_republic',
+                    'arccw_k_dc17m_sniper_republic',
+                    'weapon_defibrillator',
+                    'weapon_bactainjector',
+                    'arccw_k_nade_bacta',
+                    'realistic_hook',
+                },
+                default = {
+                    'arccw_k_dc15sa',
+                },
+            },
+            hp = 500,
+            ar = 60,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+        ['Подрывник'] = {
+            id = 'DEM',
+            model = {
+                'models/earnaut/earnaut.mdl',
+            },
+            weapon = {
+                ammunition = {
+                    'arccw_k_dc17m_rifle_republic',
+                    'arccw_k_dc17m_shotgun_republic',
+                    'arccw_k_dc17m_sniper_republic',
+                    'arccw_k_launcher_plx1',
+                    'arccw_k_launcher_hh12',
+                    'arccw_k_nade_impact',
+                    'arccw_k_nade_c14',
+                    'arccw_k_nade_antitankmine',
+                    'defuser_bomb',
+                    'realistic_hook',
+                },
+                default = {
+                    'arccw_k_dc15sa',
+                },
+            },
+            hp = 500,
+            ar = 60,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+        ['Командир'] = {
+            id = 'CMD',
+            model = {
+                'models/krei/krei.mdl',
+            },
+            weapon = {
+                ammunition = {
+                    'arccw_k_dc17m_rifle_republic',
+                    'arccw_k_dc17m_shotgun_republic',
+                    'arccw_k_dc17m_sniper_republic',
+                    'realistic_hook',
+                    'weapon_marker',
+                    'weapon_officerboost_normal',
+                },
+                default = {
+                    'arccw_k_dc15sa',
+                },
+            },
+            hp = 500,
+            ar = 60,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+        ['Снайпер'] = {
+            id = 'SNP',
+            model = {
+                'models/zekora/zekora.mdl',
+            },
+            weapon = {
+                ammunition = {
+                    'arccw_k_dc17m_rifle_republic',
+                    'arccw_k_dc17m_shotgun_republic',
+                    'arccw_k_dc17m_sniper_republic',
+                    'realistic_hook',
+                },
+                default = {
+                    'arccw_k_dc15sa',
+                },
+            },
+            hp = 500,
+            ar = 60,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
+        ['Инженер'] = {
+            id = 'ENG',
+            model = {
+                'models/soundway/soundway.mdl',
+            },
+            weapon = {
+                ammunition = {
+                    'arccw_k_dc17m_rifle_republic',
+                    'arccw_k_dc17m_shotgun_republic',
+                    'arccw_k_dc17m_sniper_republic',
+                    'weapon_lvsrepair',
+                    'sv_datapad',
+                    'realistic_hook',
+                    'comlink_fixingtool',
+                    'fort_datapad',
+                },
+                default = {
+                    'arccw_k_dc15sa',
+                },
+            },
+            hp = 500,
+            ar = 60,
+            replaceWeapon = true,
+            replaceHPandAR = true,
+            replaceModel = true,
+        },
     },
 
     -- ТИПы и КОНТРОЛы
@@ -7255,7 +10202,7 @@ TEAM_JEDITRIFF = NextRP.createJob('Джедай Triff', {
             },
             -- Форматирование
             -- natoCode = 'OR-1',
-            fullRank = 'Магистер',
+            fullRank = 'Магистр',
             -- Вайтлист
             whitelist = false -- Может ли выдавать эту профу
         },
@@ -7393,11 +10340,11 @@ TEAM_JEDITRIFF = NextRP.createJob('Джедай Triff', {
     category = 'Джедаи'
 })
 
-TEAM_JEDIENI = NextRP.createJob('Джедай Пло Кун', {
+TEAM_JEDIRAVEN = NextRP.createJob('Джедай Raven', {
     -- НЕОБХОДИМЫЕ НАСТРОЙКИ
-    id = 'jedieni', -- УНИКАЛЬНЫЙ ID ПРОФЫ, без него вся система персонажей идёт нахуй
+    id = 'jediraven', -- УНИКАЛЬНЫЙ ID ПРОФЫ, без него вся система персонажей идёт нахуй
     -- Модель(и)
-    model = {'models/player/plo/jedi/council/plo_koon_s7.mdl'},
+    model = {'models/jedi/jediraven.mdl'},
     color = Color(127, 143, 166),
     -- Звания
     default_rank = 'Magister',
@@ -7407,9 +10354,10 @@ TEAM_JEDIENI = NextRP.createJob('Джедай Пло Кун', {
             sortOrder = 5,
             -- Основные настройки
             model = { -- Модели
-                        'models/player/plo/jedi/council/plo_koon_s7.mdl',
+                        'models/jedi/jediraven.mdl',
+                        'models/sith/sithraven.mdl',
             },
-            hp = 1000, -- ХП
+            hp = 1400, -- ХП
             ar = 50, -- Армор
             weapon = { -- Оружие
                 default = {'weapon_lscs'}, -- При спавне
@@ -7423,6 +10371,74 @@ TEAM_JEDIENI = NextRP.createJob('Джедай Пло Кун', {
         },
     },
     flags = {
+        ['guard'] = {
+            id = 'Страж',
+
+            model = {
+            },
+            weapon = {
+                ammunition = {},
+                default = {}
+            },
+
+            hp = 5,
+            ar = 5,
+
+            replaceWeapon = false,
+            replaceHPandAR = false,
+            replaceModel = false,
+        },
+        ['defender'] = {
+            id = 'Защитник',
+
+            model = {
+            },
+            weapon = {
+                ammunition = {},
+                default = {}
+            },
+
+            hp = 5,
+            ar = 5,
+
+            replaceWeapon = false,
+            replaceHPandAR = false,
+            replaceModel = false,
+        },
+        ['consul'] = {
+            id = 'Консул',
+
+            model = {
+            },
+            weapon = {
+                ammunition = {},
+                default = {}
+            },
+
+            hp = 5,
+            ar = 5,
+
+            replaceWeapon = false,
+            replaceHPandAR = false,
+            replaceModel = false,
+        },
+        ['cj'] = {
+            id = 'Коммандер',
+
+            model = {
+            },
+            weapon = {
+                ammunition = {},
+                default = {}
+            },
+
+            hp = 5,
+            ar = 5,
+
+            replaceWeapon = false,
+            replaceHPandAR = false,
+            replaceModel = false,
+        },
         ['gj'] = {
             id = 'Генерал-Джедай',
 
@@ -7433,11 +10449,206 @@ TEAM_JEDIENI = NextRP.createJob('Джедай Пло Кун', {
                 default = {}
             },
 
-            hp = 1000,
-            ar = 50,
+            hp = 5,
+            ar = 5,
 
             replaceWeapon = false,
-            replaceHPandAR = true,
+            replaceHPandAR = false,
+            replaceModel = false,
+        },
+        ['sgj'] = {
+            id = 'Старший Генерал-Джедай',
+
+            model = {
+            },
+            weapon = {
+                ammunition = {},
+                default = {}
+            },
+
+            hp = 5,
+            ar = 5,
+
+            replaceWeapon = false,
+            replaceHPandAR = false,
+            replaceModel = false,
+        },
+        ['hgj'] = {
+            id = 'Высший Генерал-Джедай',
+
+            model = {
+            },
+            weapon = {
+                ammunition = {},
+                default = {}
+            },
+
+            hp = 5,
+            ar = 5,
+
+            replaceWeapon = false,
+            replaceHPandAR = false,
+            replaceModel = false,
+        }
+    },
+
+    -- ТИПы и КОНТРОЛы
+    type = TYPE_JEDI, -- ТИП, могут быть TYPE_USA, TYPE_RUSSIA, TYPE_TERROR, TYPE_OTHER, TYPE_ADMIN, TYPE_RPROLE   control = CONTROL_NATO
+    control = CONTROL_GAR, -- КОНТРОЛ, можеть быть CONTROL_NATO, CONTROL_TERRORISTS, CONTROL_HEADHUNTERS, CONTROL_NONE
+    -- Стартовая
+    start = false,
+    Salary = 100,
+    -- Категория
+    category = 'Джедаи'
+})
+
+TEAM_JEDIENI = NextRP.createJob('Джедай Мейс Винду', {
+    -- НЕОБХОДИМЫЕ НАСТРОЙКИ
+    id = 'jedieni', -- УНИКАЛЬНЫЙ ID ПРОФЫ, без него вся система персонажей идёт нахуй
+    -- Модель(и)
+    model = {'models/seven/jedi_macewinduv.mdl'},
+    color = Color(127, 143, 166),
+    -- Звания
+    default_rank = 'Magister',
+    ranks = {
+        ['Magister'] = {
+            -- Порядок сортировки, снизу вверх
+            sortOrder = 5,
+            -- Основные настройки
+            model = { -- Модели
+                        'models/seven/jedi_macewinduv.mdl',
+            },
+            hp = 1400, -- ХП
+            ar = 50, -- Армор
+            weapon = { -- Оружие
+                default = {'weapon_lscs'}, -- При спавне
+                ammunition = {} -- В оружейке
+            },
+            -- Форматирование
+            -- natoCode = 'OR-1',
+            fullRank = 'Магистр',
+            -- Вайтлист
+            whitelist = false -- Может ли выдавать эту профу
+        },
+    },
+    flags = {
+        ['guard'] = {
+            id = 'Страж',
+
+            model = {
+            },
+            weapon = {
+                ammunition = {},
+                default = {}
+            },
+
+            hp = 5,
+            ar = 5,
+
+            replaceWeapon = false,
+            replaceHPandAR = false,
+            replaceModel = false,
+        },
+        ['defender'] = {
+            id = 'Защитник',
+
+            model = {
+            },
+            weapon = {
+                ammunition = {},
+                default = {}
+            },
+
+            hp = 5,
+            ar = 5,
+
+            replaceWeapon = false,
+            replaceHPandAR = false,
+            replaceModel = false,
+        },
+        ['consul'] = {
+            id = 'Консул',
+
+            model = {
+            },
+            weapon = {
+                ammunition = {},
+                default = {}
+            },
+
+            hp = 5,
+            ar = 5,
+
+            replaceWeapon = false,
+            replaceHPandAR = false,
+            replaceModel = false,
+        },
+        ['cj'] = {
+            id = 'Коммандер',
+
+            model = {
+            },
+            weapon = {
+                ammunition = {},
+                default = {}
+            },
+
+            hp = 5,
+            ar = 5,
+
+            replaceWeapon = false,
+            replaceHPandAR = false,
+            replaceModel = false,
+        },
+        ['gj'] = {
+            id = 'Генерал-Джедай',
+
+            model = {
+            },
+            weapon = {
+                ammunition = {},
+                default = {}
+            },
+
+            hp = 5,
+            ar = 5,
+
+            replaceWeapon = false,
+            replaceHPandAR = false,
+            replaceModel = false,
+        },
+        ['sgj'] = {
+            id = 'Старший Генерал-Джедай',
+
+            model = {
+            },
+            weapon = {
+                ammunition = {},
+                default = {}
+            },
+
+            hp = 5,
+            ar = 5,
+
+            replaceWeapon = false,
+            replaceHPandAR = false,
+            replaceModel = false,
+        },
+        ['hgj'] = {
+            id = 'Высший Генерал-Джедай',
+
+            model = {
+            },
+            weapon = {
+                ammunition = {},
+                default = {}
+            },
+
+            hp = 5,
+            ar = 5,
+
+            replaceWeapon = false,
+            replaceHPandAR = false,
             replaceModel = false,
         },
     },
@@ -7471,7 +10682,10 @@ TEAM_JEDIHARLEY = NextRP.createJob('Джедай Harley Stark', {
             hp = 1000, -- ХП
             ar = 50, -- Армор
             weapon = { -- Оружие
-                default = {'weapon_lscs'}, -- При спавне
+                default = {
+                    'weapon_lscs',
+                    'weapon_shaman',
+                }, -- При спавне
                 ammunition = {} -- В оружейке
             },
             -- Форматирование

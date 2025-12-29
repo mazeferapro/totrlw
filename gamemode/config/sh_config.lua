@@ -73,7 +73,7 @@ hook.Add('NextRP::ConfigLoaded', 'NextRP::LoadConfigRlatedStuff', function()
 NextRP.Config.Codes = {
     Permissions = {
         [CONTROL_GAR] = {
-          [TEAM_CTRP] = true,
+      [TEAM_501TRP] = true
         }
     },
     States = {

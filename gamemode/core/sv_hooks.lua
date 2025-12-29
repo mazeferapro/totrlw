@@ -9,6 +9,7 @@ local katarnTable = {
 	['Республиканский коммандос Омега'] = true,
 	['Республиканский коммандос 44-го'] = true,
 	['RC-8914 Kriege / взломщик '] = true,
+	['Werewolf'] = true,
 }
 
 hook.Add("EntityEmitSound", "ReduceAllSoundsExceptVoice", function(soundData)
@@ -88,42 +89,42 @@ hook.Add('HUDPaint', 'xbeastguyx_bloodyscreen', function()
 	return
 end)
 
-hook.Add('AcceptInput', 'NextRP::TestAcceptInputHook', function(eEnt, sInput, eActivator, eCaller, aValue)
+-- hook.Add('AcceptInput', 'NextRP::TestAcceptInputHook', function(eEnt, sInput, eActivator, eCaller, aValue)
 	-- if sInput and eActivator:IsSuperAdmin() then
 	-- 	eActivator:SendMessage(0, Color(255, 0, 0), '[DEBUG]', color_white, ' Класс: ', eEnt:GetClass(), ', инпут: ', sInput, ', имя: ', eEnt:GetName(), ', value: ', aValue)
 	-- end
 
 	-- Кадеты
-	if NextRP.Config.cadetDoors[eEnt:GetName()] and eActivator:IsPlayer() then
-		if eActivator:Team() == TEAM_CADET and table.IsEmpty(eActivator:GetNVar('nrp_charflags') or {}) then
-			netstream.Start(eActivator, 'NextRP::ScreenNotify', string.format('У вас нет доступа к этой кнопке.\n\nВам следует проти обучение в одном из терминалов по центру комнаты.', eActivator:GetNumber(), eActivator:GetNumber()), 'Error', 20)
-			return true
-		end
+	-- if NextRP.Config.cadetDoors[eEnt:GetName()] and eActivator:IsPlayer() then
+	--	if eActivator:Team() == TEAM_CADET and table.IsEmpty(eActivator:GetNVar('nrp_charflags') or {}) then
+	--		netstream.Start(eActivator, 'NextRP::ScreenNotify', string.format('У вас нет доступа к этой кнопке.\n\nВам следует проти обучение в одном из терминалов по центру комнаты.', eActivator:GetNumber(), eActivator:GetNumber()), 'Error', 20)
+	--		return true
+	--	end
+--
+--	end
 
-	end
-
-	if NextRP.Config.cadetRealays[eEnt:GetName()] and sInput == 'Disable' and eActivator:IsPlayer() then
-		netstream.Start(eActivator, 'NextRP::ScreenNotify', string.format('Дверь в кадетский корпус открыта.\nНе забудьте заблокировать дверь!', eActivator:GetNumber(), eActivator:GetNumber()), 'Confirm', 10)
-	end
+	-- if NextRP.Config.cadetRealays[eEnt:GetName()] and sInput == 'Disable' and eActivator:IsPlayer() then
+	-- 		netstream.Start(eActivator, 'NextRP::ScreenNotify', string.format('Дверь в кадетский корпус открыта.\nНе забудьте заблокировать дверь!', eActivator:GetNumber(), eActivator:GetNumber()), 'Confirm', 10)
+	-- end
 
 	-- Медики
-	if NextRP.Config.medicDoors[eEnt:GetName()] and eActivator:IsPlayer() then
-		local can = false
+	-- if NextRP.Config.medicDoors[eEnt:GetName()] and eActivator:IsPlayer() then
+	--	local can = false
+	--
+	--	if (eActivator:GetNVar('nrp_charflags') or {})['med'] then can = true end
+	--	if eActivator:getJobTable().id == 'clonemed' then can = true end
+	--
+	--	if not can then
+	--		netstream.Start(eActivator, 'NextRP::ScreenNotify', string.format('У вас нет доступа к этой кнопке.\n\nТолько для медиков!', eActivator:GetNumber(), eActivator:GetNumber()), 'Error', 20)
+	--		return true
+	--	end
 
-		if (eActivator:GetNVar('nrp_charflags') or {})['med'] then can = true end
-		if eActivator:getJobTable().id == 'clonemed' then can = true end
+--	end
 
-		if not can then
-			netstream.Start(eActivator, 'NextRP::ScreenNotify', string.format('У вас нет доступа к этой кнопке.\n\nТолько для медиков!', eActivator:GetNumber(), eActivator:GetNumber()), 'Error', 20)
-			return true
-		end
-
-	end
-
-	if NextRP.Config.medicRealays[eEnt:GetName()] and sInput == 'Disable' and eActivator:IsPlayer() then
-		netstream.Start(eActivator, 'NextRP::ScreenNotify', string.format('Дверь в мед. блок открыта.\nНе забудьте заблокировать дверь!', eActivator:GetNumber(), eActivator:GetNumber()), 'Confirm', 10)
-	end
-end)
+--	if NextRP.Config.medicRealays[eEnt:GetName()] and sInput == 'Disable' and eActivator:IsPlayer() then
+--		netstream.Start(eActivator, 'NextRP::ScreenNotify', string.format('Дверь в мед. блок открыта.\nНе забудьте заблокировать дверь!', eActivator:GetNumber(), eActivator:GetNumber()), 'Confirm', 10)
+--	end
+--end)
 
 function GM:PlayerSpawn( pPlayer )
     hook.Call( 'PlayerLoadout', GAMEMODE, pPlayer )

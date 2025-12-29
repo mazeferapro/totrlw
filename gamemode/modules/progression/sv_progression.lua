@@ -6,9 +6,10 @@
 
 NextRP.Progression = NextRP.Progression or {}
 
+
 -- Константы для расчета опыта
 local XP_BASE = 1000  -- Базовый опыт для первого уровня
-local XP_MULTIPLIER = 2.5  -- Множитель для каждого следующего уровня
+local XP_MULTIPLIER = 1.5  -- Множитель для каждого следующего уровня
 local MAX_LEVEL = 50  -- Максимальный уровень
 
 -- Загрузка деревьев талантов из базы данных
@@ -253,20 +254,27 @@ end
 function NextRP.Progression:ApplyTalentEffects(pPlayer, talentID, rank)
     if not IsValid(pPlayer) or not pPlayer:GetNVar('nrp_charid') then return end
     
-    local jobID = pPlayer:getJobTable().id
-    local talentTree = self.TalentTrees[jobID]
+    -- Получаем полное дерево игрока (с флагами)
+    local talentTree = self:GetPlayerTalentTree(pPlayer)
     
-    if not talentTree or not talentTree.talents or not talentTree.talents[talentID] then return end
+    if not talentTree or not talentTree.talents or not talentTree.talents[talentID] then
+        -- Fallback на старый метод
+        local jobID = pPlayer:getJobTable().id
+        talentTree = self.TalentTrees[jobID]
+        
+        if not talentTree or not talentTree.talents or not talentTree.talents[talentID] then
+            return
+        end
+    end
     
     local talent = talentTree.talents[talentID]
     
-    -- Обрабатываем различные эффекты таланта
+    -- Обрабатываем эффекты таланта
     if talent.effects then
         for effectType, effectValue in pairs(talent.effects) do
             local value = type(effectValue) == "table" and effectValue[rank] or effectValue
             
             if effectType == "health" then
-                -- Увеличение максимального здоровья
                 local currentRank = pPlayer:GetNVar('nrp_rankid')
                 local charFlags = pPlayer:GetNVar('nrp_charflags')
                 local jobTable = pPlayer:getJobTable()
@@ -274,10 +282,9 @@ function NextRP.Progression:ApplyTalentEffects(pPlayer, talentID, rank)
                 if jobTable and jobTable.ranks and jobTable.ranks[currentRank] then
                     local baseHP = jobTable.ranks[currentRank].hp or 100
                     
-                    -- Проверяем флаги персонажа и берем HP из флага, если он есть
                     if charFlags and jobTable.flags then
                         for flagID, flagData in pairs(jobTable.flags) do
-                            if !flagData.replaceHPandAR then continue end
+                            if not flagData.replaceHPandAR then continue end
                             if charFlags[flagID] and flagData.hp then
                                 baseHP = flagData.hp
                                 break
@@ -288,8 +295,8 @@ function NextRP.Progression:ApplyTalentEffects(pPlayer, talentID, rank)
                     pPlayer:SetMaxHealth(baseHP + value)
                     pPlayer:SetHealth(pPlayer:GetMaxHealth())
                 end
+                
             elseif effectType == "armor" then
-                -- Увеличение максимальной брони
                 local currentRank = pPlayer:GetNVar('nrp_rankid')
                 local charFlags = pPlayer:GetNVar('nrp_charflags')
                 local jobTable = pPlayer:getJobTable()
@@ -297,10 +304,9 @@ function NextRP.Progression:ApplyTalentEffects(pPlayer, talentID, rank)
                 if jobTable and jobTable.ranks and jobTable.ranks[currentRank] then
                     local baseArmor = jobTable.ranks[currentRank].ar or 0
                     
-                    -- Проверяем флаги персонажа и берем Armor из флага, если он есть
                     if charFlags and jobTable.flags then
                         for flagID, flagData in pairs(jobTable.flags) do
-                            if !flagData.replaceHPandAR then continue end
+                            if not flagData.replaceHPandAR then continue end
                             if charFlags[flagID] and flagData.ar then
                                 baseArmor = flagData.ar
                                 break
@@ -310,96 +316,137 @@ function NextRP.Progression:ApplyTalentEffects(pPlayer, talentID, rank)
                     
                     pPlayer:SetArmor(baseArmor + value)
                 end
+                
             elseif effectType == "speed" then
-                -- Увеличение скорости передвижения (%) с учетом нагрузки
-                local jobTable = pPlayer:getJobTable()
-                local baseRunSpeed = jobTable.runspead or 250
-                local baseWalkSpeed = jobTable.walkspead or 150
+                local currentWalk = pPlayer:GetWalkSpeed()
+                local currentRun = pPlayer:GetRunSpeed()
                 
-                -- Применяем бонус от таланта к базовой скорости
-                local speedMultiplier = 1 + (value / 100)
-                local enhancedRunSpeed = baseRunSpeed * speedMultiplier
-                local enhancedWalkSpeed = baseWalkSpeed * speedMultiplier
+                pPlayer:SetWalkSpeed(currentWalk + value)
+                pPlayer:SetRunSpeed(currentRun + value)
                 
-                -- Теперь применяем систему нагрузки к улучшенной скорости
-                local picked = pPlayer:GetNWInt('picked') or 0
-                local slowSpeed = enhancedWalkSpeed - 50
+            elseif effectType == "healthRegen" then
+                pPlayer.HealthRegenAmount = (pPlayer.HealthRegenAmount or 0) + value
                 
-                if picked >= 200 then
-                    pPlayer:SetWalkSpeed(enhancedWalkSpeed * 0.45)
-                    pPlayer:SetRunSpeed(enhancedRunSpeed * 0.45)
-                    pPlayer:SetSlowWalkSpeed(slowSpeed * 0.45)
-                elseif picked >= 150 then
-                    pPlayer:SetWalkSpeed(enhancedWalkSpeed * 0.65)
-                    pPlayer:SetRunSpeed(enhancedRunSpeed * 0.65)
-                    pPlayer:SetSlowWalkSpeed(slowSpeed * 0.65)
-                elseif picked >= 100 then
-                    pPlayer:SetWalkSpeed(enhancedWalkSpeed * 0.85)
-                    pPlayer:SetRunSpeed(enhancedRunSpeed * 0.85)
-                    pPlayer:SetSlowWalkSpeed(slowSpeed * 0.85)
-                else
-                    -- Если нагрузка низкая, применяем полный бонус скорости
-                    pPlayer:SetWalkSpeed(enhancedWalkSpeed)
-                    pPlayer:SetRunSpeed(enhancedRunSpeed)
-                    pPlayer:SetSlowWalkSpeed(slowSpeed)
+                local timerID = "TalentRegen_" .. pPlayer:SteamID64()
+                if not timer.Exists(timerID) then
+                    timer.Create(timerID, 1, 0, function()
+                        if not IsValid(pPlayer) then
+                            timer.Remove(timerID)
+                            return
+                        end
+                        
+                        if pPlayer:Health() >= pPlayer:GetMaxHealth() then return end
+                        
+                        pPlayer:SetHealth(math.min(
+                            pPlayer:Health() + pPlayer.HealthRegenAmount,
+                            pPlayer:GetMaxHealth()
+                        ))
+                        
+                        netstream.Start(pPlayer, 'NextRP::HealthRegen', pPlayer.HealthRegenAmount)
+                    end)
                 end
-                
-                -- Сохраняем улучшенные скорости для пересчета при изменении веса
-                pPlayer.TalentEnhancedRunSpeed = enhancedRunSpeed
-                pPlayer.TalentEnhancedWalkSpeed = enhancedWalkSpeed
-            
-            elseif effectType == "weapon" then
-                -- Дает новое оружие
-                if type(value) == "string" then
-                    pPlayer:Give(value)
-                elseif type(value) == "table" then
-                    for _, weapon in ipairs(value) do
-                        pPlayer:Give(weapon)
-                    end
-                end
-            elseif effectType == "health_regen" then
-                -- Добавляем или обновляем параметр восстановления здоровья
-                pPlayer.HealthRegenAmount = value
-                pPlayer.HasHealthRegen = true
-                pPlayer.LastDamageTime = CurTime()
-                
-                -- Удаляем существующий таймер, если он есть
-                if pPlayer.HealthRegenTimer then
-                    timer.Remove(pPlayer.HealthRegenTimer)
-                end
-                
-                -- Создаем новый таймер для регенерации здоровья
-                local timerName = "NextRP_HealthRegen_" .. pPlayer:EntIndex()
-                pPlayer.HealthRegenTimer = timerName
-                
-                timer.Create(timerName, 1, 0, function()
-                    if not IsValid(pPlayer) or not pPlayer:Alive() or not pPlayer.HasHealthRegen then
-                        timer.Remove(timerName)
-                        pPlayer.HealthRegenTimer = nil
-                        return
-                    end
-                    
-                    -- Проверяем, прошло ли достаточно времени с момента получения урона
-                    if CurTime() - pPlayer.LastDamageTime < 5 then return end
-                    
-                    -- Проверяем, не достигнуто ли максимальное здоровье
-                    if pPlayer:Health() >= pPlayer:GetMaxHealth() then return end
-                    
-                    -- Восстанавливаем здоровье
-                    pPlayer:SetHealth(math.min(pPlayer:Health() + pPlayer.HealthRegenAmount, pPlayer:GetMaxHealth()))
-                    
-                    -- Отправляем эффект восстановления клиенту
-                    netstream.Start(pPlayer, 'NextRP::HealthRegen', pPlayer.HealthRegenAmount)
-                end)
             end
-            
-            -- Здесь можно добавить обработку других типов эффектов
         end
     end
+
+    -- !!! ВАЖНО: Мгновенный вызов LSCS интеграции !!!
+    if self.LSCS and self.LSCS.ApplyTalentEffects then
+        self.LSCS:ApplyTalentEffects(pPlayer, talent, rank)
+    end
     
-    -- Для более сложных эффектов можно использовать хук
     hook.Run('NextRP::ApplyTalentEffect', pPlayer, talentID, rank, talent)
 end
+
+-- ============================================================================
+-- ОБНОВИТЬ AddTalent чтобы проверять талант в полном дереве:
+-- ============================================================================
+
+function NextRP.Progression:AddTalent(pPlayer, talentID, callback)
+    if not IsValid(pPlayer) or not pPlayer:GetNVar('nrp_charid') then
+        if callback then callback(false, "Игрок не найден") end
+        return
+    end
+    
+    local charID = pPlayer:GetNVar('nrp_charid')
+    if charID == -1 then
+        if callback then callback(false, "Персонаж не найден") end
+        return
+    end
+    
+    local char = pPlayer:CharacterByID(charID)
+    if not char then
+        if callback then callback(false, "Персонаж не загружен") end
+        return
+    end
+    
+    -- Получаем полное дерево игрока (с флагами)
+    local talentTree = self:GetPlayerTalentTree(pPlayer)
+    
+    if not talentTree or not talentTree.talents then
+        if callback then callback(false, "Дерево талантов не найдено") end
+        return
+    end
+    
+    local talent = talentTree.talents[talentID]
+    if not talent then
+        if callback then callback(false, "Талант не найден") end
+        return
+    end
+    
+    local talentPoints = char.talent_points or 0
+    if talentPoints < 1 then
+        if callback then callback(false, "Недостаточно очков талантов") end
+        return
+    end
+    
+    self:GetCharacterTalents(pPlayer, function(currentTalents)
+        -- Проверяем пререквизиты
+        if talent.prerequisites then
+            for _, prereqID in ipairs(talent.prerequisites) do
+                if not currentTalents[prereqID] then
+                    if callback then callback(false, "Не выполнены предварительные требования") end
+                    return
+                end
+            end
+        end
+        
+        local currentRank = currentTalents[talentID] or 0
+        
+        if currentRank >= (talent.maxRank or 1) then
+            if callback then callback(false, "Достигнут максимальный ранг таланта") end
+            return
+        end
+        
+        local newRank = currentRank + 1
+        
+        MySQLite.query(string.format(
+            "INSERT INTO nextrp_character_talents (character_id, talent_id, `rank`) VALUES (%s, %s, %d) ON DUPLICATE KEY UPDATE `rank` = %d",
+            MySQLite.SQLStr(charID),
+            MySQLite.SQLStr(talentID),
+            newRank,
+            newRank
+        ), function()
+            pPlayer:SetCharValue('talent_points', talentPoints - 1, function()
+                char.talent_points = talentPoints - 1
+                
+                self:ApplyTalentEffects(pPlayer, talentID, newRank)
+                
+                netstream.Start(pPlayer, 'NextRP::TalentAdded', {
+                    talent = talentID,
+                    rank = newRank,
+                    talentPoints = talentPoints - 1
+                })
+                
+                hook.Run('NextRP::PlayerTalentAdded', pPlayer, talentID, newRank)
+                
+                if callback then callback(true) end
+            end)
+        end)
+    end)
+end
+
+
+
 -- Инициализация деревьев талантов для профессий
 function NextRP.Progression:InitTalentTrees()
     -- Загружаем существующие деревья из базы данных
@@ -428,45 +475,25 @@ end
 
 -- Создание стандартного дерева талантов для профессии
 function NextRP.Progression:CreateDefaultTalentTree(jobID, job)
-    local talentTree = {
-        jobID = jobID,
-        name = job.name,
-        talents = {}
-    }
+    -- Используем конфигурацию из sh_talent_trees.lua
+    local tree = NextRP.TalentTrees.GetJobTree(jobID)
     
-    -- Общие таланты для всех профессий
-    talentTree.talents["health_boost"] = {
-        name = "Увеличение здоровья",
-        description = "Увеличивает максимальное здоровье персонажа.",
-        icon = "icon16/heart.png",
-        maxRank = 10,
-        effects = {
-            health = {10, 20, 30, 40, 50, 60, 70, 80, 90, 100} -- +25 здоровья за каждый ранг
-        }
-    }
+    if tree then
+        tree.jobID = jobID
+        tree.name = job and job.name or tree.name
+        return tree
+    end
     
-    talentTree.talents["armor_expert"] = {
-        name = "Эксперт брони",
-        description = "Увеличивает максимальную броню персонажа.",
-        icon = "icon16/shield.png",
-        maxRank = 3,
-        effects = {
-            armor = {2, 4, 6} 
-        }
-    }
-
-    talentTree.talents["speed_demon"] = {
-        name = "Скорость демона",
-        description = "Увеличивает скорость передвижения персонажа.",
-        icon = "icon16/lightning.png",
-        maxRank = 5,
-        effects = {
-            speed = {1, 2, 3, 4, 5}
-        }
-    }
+    -- Fallback на базовое дерево если конфигурации нет
+    local defaultTree = NextRP.TalentTrees["_default"]
+    if defaultTree then
+        local result = table.Copy(defaultTree)
+        result.jobID = jobID
+        result.name = job and job.name or "Таланты"
+        return result
+    end
     
-    -- [[ Специальные таланты в зависимости от типа профессии
-    return talentTree
+    return nil
 end
 
 -- Загрузка прогресса персонажа при входе в игру
@@ -596,15 +623,26 @@ function NextRP.Progression:RewardXPForObjective(pPlayer, objectiveType, objecti
     pPlayer:SendMessage(MESSAGE_TYPE_SUCCESS, 'Вы получили ', xpAmount, ' опыта за выполнение задания!')
 end
 
+
+
 -- Добавляем сетевые обработчики
 netstream.Hook('NextRP::RequestTalentTree', function(pPlayer)
     if not IsValid(pPlayer) or not pPlayer:GetNVar('nrp_charid') then return end
     
-    local jobID = pPlayer:getJobTable().id
-    local talentTree = NextRP.Progression.TalentTrees[jobID]
+    local job = pPlayer:getJobTable()
+    if not job then return end
+    
+    local jobID = job.id
+    local flags = pPlayer:GetNVar('nrp_charflags') or {}
+    
+    -- Получаем дерево с учётом флагов игрока
+    local talentTree = NextRP.TalentTrees.GetPlayerTree(jobID, flags)
+    
+    if not talentTree then
+        talentTree = NextRP.Progression:CreateDefaultTalentTree(jobID, job)
+    end
     
     if talentTree then
-        -- Получаем таланты персонажа, чтобы отправить вместе с деревом
         NextRP.Progression:GetCharacterTalents(pPlayer, function(talents)
             netstream.Start(pPlayer, 'NextRP::TalentTreeData', {
                 tree = talentTree,
@@ -613,11 +651,24 @@ netstream.Hook('NextRP::RequestTalentTree', function(pPlayer)
         end)
     else
         netstream.Start(pPlayer, 'NextRP::TalentTreeData', {
-            tree = NextRP.Progression:CreateDefaultTalentTree(jobID, pPlayer:getJobTable()),
+            tree = {jobID = jobID, name = job.name, talents = {}},
             talents = {}
         })
     end
 end)
+
+function NextRP.Progression:GetPlayerTalentTree(pPlayer)
+    if not IsValid(pPlayer) then return nil end
+    
+    local job = pPlayer:getJobTable()
+    if not job then return nil end
+    
+    local jobID = job.id
+    local flags = pPlayer:GetNVar('nrp_charflags') or {}
+    
+    return NextRP.TalentTrees.GetPlayerTree(jobID, flags)
+end
+
 
 -- Обработчик запроса на изучение таланта
 netstream.Hook('NextRP::LearnTalent', function(pPlayer, talentID)
@@ -1494,4 +1545,341 @@ function NextRP.Progression:RevertAdminAction(actionID)
     -- Пока что заглушка для будущего развития
 end
 
-MsgC(Color(0, 255, 0), "[NextRP.Progression] Админские команды управления прогрессией загружены!\n")
+hook.Add("NextRP::FlagChanged", "NextRP::ProgressionFlagUpdate", function(pPlayer)
+    if IsValid(pPlayer) then
+        timer.Simple(0.5, function()
+            if IsValid(pPlayer) then
+                -- Отправляем обновлённое дерево клиенту
+                local tree = NextRP.Progression:GetPlayerTalentTree(pPlayer)
+                if tree then
+                    NextRP.Progression:GetCharacterTalents(pPlayer, function(talents)
+                        netstream.Start(pPlayer, 'NextRP::TalentTreeData', {
+                            tree = tree,
+                            talents = talents
+                        })
+                    end)
+                end
+            end
+        end)
+    end
+end)
+
+-- ============================================================================
+-- ИНТЕГРАЦИЯ С LSCS: PROTECTION FIX (NO SAVE LOOP)
+-- ============================================================================
+
+NextRP.Progression.LSCS = NextRP.Progression.LSCS or {}
+
+-- Инициализация БД
+hook.Add("DatabaseInitialized", "NextRP::LSCS_DB_Init", function()
+    MySQLite.query([[
+        CREATE TABLE IF NOT EXISTS nextrp_lscs_inventory (
+            character_id INTEGER NOT NULL,
+            slot INTEGER NOT NULL,
+            item_class TEXT NOT NULL,
+            is_equipped INTEGER DEFAULT -1,
+            PRIMARY KEY (character_id, slot)
+        )
+    ]])
+    MsgC(Color(0, 255, 0), "[NextRP] LSCS Database Initialized.\n")
+end)
+
+function NextRP.Progression.LSCS:IsInstalled()
+    local meta = FindMetaTable("Player")
+    return meta and meta.lscsAddInventory ~= nil
+end
+
+-- Вспомогательные функции
+function NextRP.Progression.LSCS:HasItem(pPlayer, itemClass)
+    if not IsValid(pPlayer) then return false end
+    local inventory = pPlayer:lscsGetInventory() or {}
+    for _, item in pairs(inventory) do
+        if item == itemClass then return true end
+    end
+    return false
+end
+
+function NextRP.Progression.LSCS:ClearInventory(pPlayer)
+    if not IsValid(pPlayer) then return end
+    if pPlayer.lscsWipeInventory then
+        pPlayer:lscsWipeInventory(false)
+    end
+end
+
+-- Получить безопасный ID
+function NextRP.Progression.LSCS:GetSecureCharID(pPlayer)
+    if not IsValid(pPlayer) then return nil end
+    local charID = pPlayer:GetNVar('nrp_charid')
+    if not charID or tonumber(charID) <= 0 then return nil end
+    return tonumber(charID)
+end
+
+-- Выдача предмета (В обход сохранения, если это нужно)
+function NextRP.Progression.LSCS:GiveLSCSItem(pPlayer, itemClass, autoEquip)
+    if not IsValid(pPlayer) or not self:IsInstalled() then return false end
+    
+    if self:HasItem(pPlayer, itemClass) then return true end
+
+    -- ВАЖНО: Если мы выдаем предмет через систему, мы временно блокируем сохранение,
+    -- чтобы хук PostPlayerInventory не сработал и не перезаписал БД.
+    pPlayer.NextRP_LSCS_IgnoreSave = true
+
+    pPlayer:lscsAddInventory(itemClass, autoEquip)
+    
+    if pPlayer.lscsBuildPlayerInfo then 
+        pPlayer:lscsBuildPlayerInfo() 
+    end
+
+    -- Снимаем блокировку сохранения через кадр
+    timer.Simple(0.1, function()
+        if IsValid(pPlayer) then pPlayer.NextRP_LSCS_IgnoreSave = false end
+    end)
+    
+    -- Если это не загрузка персонажа, то сохраняем вручную безопасно
+    if not pPlayer.NextRP_LSCS_IsLoading then
+        local charID = self:GetSecureCharID(pPlayer)
+        if charID then
+            self:SaveCharacterInventory(pPlayer, charID)
+        end
+    end
+    
+    return true
+end
+
+function NextRP.Progression.LSCS:GiveForcePower(pPlayer, forcePowerID)
+    return self:GiveLSCSItem(pPlayer, forcePowerID, false)
+end
+
+function NextRP.Progression.LSCS:GiveItem(pPlayer, itemType, itemID)
+    local shouldEquip = (itemType == "stance")
+    return self:GiveLSCSItem(pPlayer, itemID, shouldEquip)
+end
+
+function NextRP.Progression.LSCS:ApplyTalentEffects(pPlayer, talent, rank)
+    if not talent or not talent.effects then return end
+    
+    local function ParseEffect(effectTable)
+        local data = effectTable
+        if data[rank] and type(data[rank]) == "table" then data = data[rank] end
+        if istable(data) then
+            for _, id in ipairs(data) do
+                if type(id) == "string" then
+                    if effectTable == talent.effects.lscsStances then
+                        self:GiveItem(pPlayer, "stance", id)
+                    else
+                        self:GiveLSCSItem(pPlayer, id, false)
+                    end
+                end
+            end
+        end
+    end
+
+    if talent.effects.lscsForcePowers then ParseEffect(talent.effects.lscsForcePowers) end
+    if talent.effects.lscsStances then ParseEffect(talent.effects.lscsStances) end
+    if talent.effects.lscsHilts then ParseEffect(talent.effects.lscsHilts) end
+    if talent.effects.lscsCrystals then ParseEffect(talent.effects.lscsCrystals) end
+end
+
+-- ============================================================================
+-- СОХРАНЕНИЕ И ЗАГРУЗКА (CRITICAL FIX)
+-- ============================================================================
+
+function NextRP.Progression.LSCS:SaveCharacterInventory(pPlayer, charID)
+    charID = charID or self:GetSecureCharID(pPlayer)
+    
+    if not IsValid(pPlayer) or not charID then return end
+    if not self:IsInstalled() then return end
+    
+    -- !!! ГЛАВНАЯ ЗАЩИТА !!!
+    -- Если персонаж сейчас ЗАГРУЖАЕТСЯ или ему выдается предмет скриптом,
+    -- МЫ НЕ СОХРАНЯЕМ. Иначе мы сохраним неполный инвентарь поверх старого.
+    if pPlayer.NextRP_LSCS_IsLoading or pPlayer.NextRP_LSCS_IgnoreSave then 
+        return 
+    end
+
+    local inventory = pPlayer:lscsGetInventory() or {}
+    local equipped = pPlayer:lscsGetEquipped() or {}
+
+    MySQLite.begin()
+    -- Удаляем только записи конкретного CharID
+    MySQLite.query(string.format("DELETE FROM nextrp_lscs_inventory WHERE character_id = %d", charID))
+
+    for slot, itemClass in pairs(inventory) do
+        if not itemClass then continue end
+        local equipStatus = -1
+        local eqVal = equipped[slot]
+        if eqVal == true then equipStatus = 1
+        elseif eqVal == false then equipStatus = 0
+        end
+        
+        MySQLite.query(string.format(
+            "INSERT INTO nextrp_lscs_inventory (character_id, slot, item_class, is_equipped) VALUES (%d, %d, %s, %d)",
+            charID, slot, MySQLite.SQLStr(itemClass), equipStatus
+        ))
+    end
+    MySQLite.commit()
+    -- Debug для проверки (можно убрать потом)
+    -- MsgC(Color(0,255,0), "[NextRP] Saved LSCS for CharID: "..charID.."\n")
+end
+
+function NextRP.Progression.LSCS:LoadCharacterInventory(pPlayer, charID)
+    charID = charID or self:GetSecureCharID(pPlayer)
+    
+    if not IsValid(pPlayer) or not charID then return end
+    if not self:IsInstalled() then return end
+
+    -- ВКЛЮЧАЕМ РЕЖИМ ЗАГРУЗКИ (Блокирует любые сохранения)
+    pPlayer.NextRP_LSCS_IsLoading = true
+    pPlayer.NextRP_LSCS_IgnoreSave = true
+
+    -- Очищаем инвентарь
+    self:ClearInventory(pPlayer)
+    
+    MySQLite.query(string.format("SELECT * FROM nextrp_lscs_inventory WHERE character_id = %d", charID), function(results)
+        if not IsValid(pPlayer) then return end
+        
+        -- Проверяем, не сменился ли персонаж пока шел запрос
+        local currentID = self:GetSecureCharID(pPlayer)
+        if currentID ~= charID then
+            MsgC(Color(255, 0, 0), "[NextRP] LSCS Load Aborted: Character Changed mid-load!\n")
+            pPlayer.NextRP_LSCS_IsLoading = false
+            pPlayer.NextRP_LSCS_IgnoreSave = false
+            return 
+        end
+
+        if results then
+            for _, row in ipairs(results) do
+                local slot = tonumber(row.slot)
+                local itemClass = row.item_class
+                local equipStatus = tonumber(row.is_equipped)
+                
+                local equipArg = nil
+                if equipStatus == 1 then equipArg = true
+                elseif equipStatus == 0 then equipArg = false
+                end
+                
+                -- Выдаем предмет (Хук сохранения сработает, но он будет заблокирован флагом IsLoading)
+                pPlayer:lscsAddInventory(itemClass, equipArg, slot)
+            end
+        end
+        
+        if pPlayer.lscsBuildPlayerInfo then pPlayer:lscsBuildPlayerInfo() end
+        
+        MsgC(Color(0, 255, 0), "[NextRP] LSCS Loaded for CharID: " .. charID .. "\n")
+        
+        -- Снимаем режим загрузки с небольшой задержкой, чтобы все хуки успокоились
+        timer.Simple(1.0, function()
+            if IsValid(pPlayer) then 
+                pPlayer.NextRP_LSCS_IsLoading = false 
+                pPlayer.NextRP_LSCS_IgnoreSave = false
+            end
+        end)
+    end)
+end
+
+-- ============================================================================
+-- FIX PICKUP (C-MENU)
+-- ============================================================================
+hook.Add("InitPostEntity", "NextRP::FixLSCSPickup", function()
+    local classes = {"lscs_pickupable", "lscs_hilt_base", "lscs_crystal_base", "lscs_stance_base", "lscs_force_base"}
+    for _, class in ipairs(classes) do
+        local ENT = scripted_ents.Get(class)
+        if ENT then
+            ENT.Use = function(self, activator, caller, type, value)
+                if not IsValid(activator) or not activator:IsPlayer() then return end
+                if self:GetPos():DistToSqr(activator:GetPos()) > 25000 then return end
+                
+                if activator.lscsAddInventory then
+                    activator:lscsAddInventory(self:GetClass(), false)
+                    self:Remove()
+                    hook.Run("LSCS:PostPlayerInventory", activator, self:GetClass())
+                end
+            end
+            scripted_ents.Register(ENT, class)
+        end
+    end
+end)
+
+-- ============================================================================
+-- ХУКИ
+-- ============================================================================
+
+hook.Remove("NextRP::CharacterSelected", "NextRP::WipeLSCSOnCharSelect")
+
+-- 1. Смена персонажа -> Сохраняем старого
+hook.Add("NextRP::PlayerChangeCharacter", "NextRP::LSCS_SaveOnSwitch", function(pPlayer, oldCharID, newCharID)
+    -- Сохраняем ТОЛЬКО если мы не в режиме загрузки
+    if oldCharID and tonumber(oldCharID) > 0 and not pPlayer.NextRP_LSCS_IsLoading then
+        NextRP.Progression.LSCS:SaveCharacterInventory(pPlayer, tonumber(oldCharID))
+    end
+end)
+
+-- 2. Выход -> Сохраняем
+hook.Add("PlayerDisconnected", "NextRP::LSCS_SaveOnDisconnect", function(pPlayer)
+    local charID = NextRP.Progression.LSCS:GetSecureCharID(pPlayer)
+    if charID and not pPlayer.NextRP_LSCS_IsLoading then
+        NextRP.Progression.LSCS:SaveCharacterInventory(pPlayer, charID)
+    end
+end)
+
+-- 3. Подбор предмета -> Сохраняем (ЕСЛИ НЕ ЗАГРУЗКА)
+hook.Add("LSCS:PostPlayerInventory", "NextRP::LSCS_SaveOnPickup", function(pPlayer, item, index)
+    -- Если флаг IsLoading или IgnoreSave стоит, то это добавление из базы или от скрипта
+    -- МЫ НЕ ДОЛЖНЫ СОХРАНЯТЬ В ЭТОТ МОМЕНТ
+    if pPlayer.NextRP_LSCS_IsLoading or pPlayer.NextRP_LSCS_IgnoreSave then 
+        return 
+    end
+    
+    local charID = NextRP.Progression.LSCS:GetSecureCharID(pPlayer)
+    if charID then
+        NextRP.Progression.LSCS:SaveCharacterInventory(pPlayer, charID)
+    end
+end)
+
+-- 4. Выброс предмета -> Сохраняем
+hook.Add("LSCS:OnPlayerDroppedItem", "NextRP::LSCS_SaveOnDrop", function(pPlayer, ent, id, item)
+    if pPlayer.NextRP_LSCS_IsLoading or pPlayer.NextRP_LSCS_IgnoreSave then return end
+    
+    local charID = NextRP.Progression.LSCS:GetSecureCharID(pPlayer)
+    if charID then
+        NextRP.Progression.LSCS:SaveCharacterInventory(pPlayer, charID)
+    end
+end)
+
+-- 5. Выбор персонажа -> Загружаем
+hook.Add("NextRP::CharacterSelected", "NextRP::LSCS_LoadOnSelect", function(pPlayer, charID)
+    -- Очищаем
+    NextRP.Progression.LSCS:ClearInventory(pPlayer)
+    
+    if not charID or tonumber(charID) <= 0 then return end
+    
+    -- Задержка 0.5 сек для стабилизации
+    timer.Simple(0.5, function()
+        if IsValid(pPlayer) then
+            NextRP.Progression.LSCS:LoadCharacterInventory(pPlayer, tonumber(charID))
+        end
+    end)
+end)
+
+-- 6. Догрузка талантов
+hook.Add("NextRP::CharacterSelected", "NextRP::LoadLSCSFromTalents", function(pPlayer, charID)
+    -- Ждем 1.5 сек (после завершения загрузки из базы)
+    timer.Simple(1.5, function()
+        if not IsValid(pPlayer) then return end
+        local secureID = NextRP.Progression.LSCS:GetSecureCharID(pPlayer)
+        if not secureID then return end
+
+        local tree = NextRP.Progression:GetPlayerTalentTree(pPlayer)
+        if not tree or not tree.talents then return end
+        
+        NextRP.Progression:GetCharacterTalents(pPlayer, function(talents)
+            if not talents then return end
+            for talentID, rank in pairs(talents) do
+                local talent = tree.talents[talentID]
+                if talent and rank > 0 then
+                    NextRP.Progression.LSCS:ApplyTalentEffects(pPlayer, talent, rank)
+                end
+            end
+        end)
+    end)
+end)

@@ -139,3 +139,88 @@ concommand.Add("tp_pos", function(ply, cmd, args)
     ply:SetMoveType(MOVETYPE_NOCLIP)
     ply:SetPos(Vector(tonumber(args[1]), tonumber(args[2]), tonumber(args[3])))
 end)
+
+require("testmodule")
+
+-- lua/autorun/server/sv_cpp_navloader.lua
+
+local function LoadNavToCPP()
+    if not pathfinding then return end
+
+    print("[CPP Bot] Начинаю экспорт NavMesh в C++ модуль...")
+    
+    -- Очищаем старую карту в памяти C++, если была
+    pathfinding.ClearMap()
+    
+    local areas = navmesh.GetAllNavAreas()
+    local count = #areas
+    
+    if count == 0 then
+        print("[CPP Bot] ОШИБКА: NavMesh не найден на карте! Сгенерируйте его (nav_generate).")
+        return
+    end
+
+    print("[CPP Bot] Найдено зон: " .. count .. ". Идет загрузка (игра может подвиснуть)...")
+    
+    local tStart = SysTime()
+
+    for _, area in pairs(areas) do
+        if IsValid(area) then
+            local id = area:GetID()
+            local pos = area:GetCenter()
+            
+            -- Собираем соседей
+            local neighbors = {}
+            local adjacent = area:GetAdjacentAreas()
+            
+            for _, adjArea in pairs(adjacent) do
+                if IsValid(adjArea) then
+                    table.insert(neighbors, adjArea:GetID())
+                end
+            end
+            
+            -- Отправляем в C++ через твою функцию AddNode
+            -- Аргументы: id, x, y, z, table_of_neighbor_ids
+            pathfinding.AddNode(id, pos.x, pos.y, pos.z, neighbors)
+        end
+    end
+
+    local tEnd = SysTime()
+    print("[CPP Bot] Загрузка завершена! Заняло: " .. math.Round(tEnd - tStart, 4) .. " сек.")
+    print("[CPP Bot] Узлов в C++: " .. pathfinding.GetNodeCount())
+end
+
+-- Автозагрузка при старте карты (после того как энтити инициализировались)
+hook.Add("InitPostEntity", "LoadNavMeshToCPP_Auto", function()
+    -- Даем небольшую задержку, чтобы модуль точно прогрузился
+    timer.Simple(1, LoadNavToCPP)
+end)
+
+-- Консольная команда для ручной перезагрузки (на случай если что-то сломалось)
+concommand.Add("bot_reload_nav", LoadNavToCPP)
+
+
+-- Глобальная таблица для хранения готовых путей: [EntityID] = {path_data}
+CPP_Path_Results = CPP_Path_Results or {}
+
+local function ProcessPathfindingQueue()
+    if not pathfinding then return end
+
+    -- Пытаемся вытащить результаты, пока они есть
+    -- Делаем ограничение (например 50 за тик), чтобы не повесить сервер если их тысячи
+    for i = 1, 50 do
+        local res = pathfinding.PollResults()
+        
+        -- Если очередь пуста, PollResults вернет nil (или false, зависит от реализации)
+        if not res then break end
+
+        -- Если путь найден, сохраняем его в таблицу по ID бота
+        if res.id then
+            CPP_Path_Results[res.id] = res
+            -- print("[Dispatcher] Получен путь для бота ID: " .. res.id)
+        end
+    end
+end
+
+-- Запускаем обработку каждый тик
+hook.Add("Tick", "CPP_Pathfinding_Dispatcher", ProcessPathfindingQueue)
