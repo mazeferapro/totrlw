@@ -186,3 +186,42 @@ concommand.Add("open_crotr_menu", function(pPlayer, cmd, args)
     -- и запускает netstream на клиент.
     NextRP.CRotR:OpenUI(pPlayer)
 end)
+
+concommand.Add("crotr_give", function(pPlayer, cmd, args)
+    -- Проверка на админа
+    if IsValid(pPlayer) and not pPlayer:IsSuperAdmin() then
+        pPlayer:ChatPrint("[CRotR] У вас нет прав для этой команды.")
+        return
+    end
+
+    -- Проверка аргументов
+    if #args < 2 then
+        local msg = "[CRotR] Использование: crotr_give <community_id> <количество>"
+        if IsValid(pPlayer) then pPlayer:ChatPrint(msg) else print(msg) end
+        return
+    end
+
+    local sCommunityID = args[1]
+    local nAmount = tonumber(args[2])
+
+    if not nAmount then
+        local msg = "[CRotR] Количество должно быть числом."
+        if IsValid(pPlayer) then pPlayer:ChatPrint(msg) else print(msg) end
+        return
+    end
+
+    -- Выдаём CRotR
+    NextRP.CRotR:AddCrotrs(sCommunityID, nAmount)
+
+    local successMsg = string.format("[CRotR] Выдано %d CRotR игроку %s", nAmount, sCommunityID)
+    if IsValid(pPlayer) then pPlayer:ChatPrint(successMsg) end
+    print(successMsg)
+
+    -- Если игрок онлайн — уведомляем
+    for _, ply in ipairs(player.GetAll()) do
+        if ply:SteamID64() == sCommunityID then
+            ply:ChatPrint(string.format("[CRotR] Вам выдано %d CRotR!", nAmount))
+            break
+        end
+    end
+end)

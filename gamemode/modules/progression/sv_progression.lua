@@ -1565,7 +1565,7 @@ hook.Add("NextRP::FlagChanged", "NextRP::ProgressionFlagUpdate", function(pPlaye
 end)
 
 -- ============================================================================
--- ИНТЕГРАЦИЯ С LSCS: PROTECTION FIX (NO SAVE LOOP)
+-- ИНТЕГРАЦИЯ С LSCS: ИСПРАВЛЕННАЯ ВЕРСИЯ
 -- ============================================================================
 
 NextRP.Progression.LSCS = NextRP.Progression.LSCS or {}
@@ -1606,7 +1606,7 @@ function NextRP.Progression.LSCS:ClearInventory(pPlayer)
     end
 end
 
--- Получить безопасный ID
+-- Получить безопасный ID (из текущего состояния)
 function NextRP.Progression.LSCS:GetSecureCharID(pPlayer)
     if not IsValid(pPlayer) then return nil end
     local charID = pPlayer:GetNVar('nrp_charid')
@@ -1614,14 +1614,33 @@ function NextRP.Progression.LSCS:GetSecureCharID(pPlayer)
     return tonumber(charID)
 end
 
--- Выдача предмета (В обход сохранения, если это нужно)
+-- ============================================================================
+-- КРИТИЧЕСКИ ВАЖНО: Отслеживание активного CharID для LSCS
+-- Это решает проблему race condition когда nrp_charid меняется до сохранения
+-- ============================================================================
+function NextRP.Progression.LSCS:GetActiveCharID(pPlayer)
+    if not IsValid(pPlayer) then return nil end
+    -- Используем cached CharID если он установлен, иначе берём из NVar
+    if pPlayer.NextRP_LSCS_ActiveCharID and pPlayer.NextRP_LSCS_ActiveCharID > 0 then
+        return pPlayer.NextRP_LSCS_ActiveCharID
+    end
+    return self:GetSecureCharID(pPlayer)
+end
+
+function NextRP.Progression.LSCS:SetActiveCharID(pPlayer, charID)
+    if not IsValid(pPlayer) then return end
+    pPlayer.NextRP_LSCS_ActiveCharID = charID and tonumber(charID) or nil
+end
+
+-- ============================================================================
+-- ВЫДАЧА ПРЕДМЕТОВ (безопасная)
+-- ============================================================================
 function NextRP.Progression.LSCS:GiveLSCSItem(pPlayer, itemClass, autoEquip)
     if not IsValid(pPlayer) or not self:IsInstalled() then return false end
     
     if self:HasItem(pPlayer, itemClass) then return true end
 
-    -- ВАЖНО: Если мы выдаем предмет через систему, мы временно блокируем сохранение,
-    -- чтобы хук PostPlayerInventory не сработал и не перезаписал БД.
+    -- Блокируем сохранение на время выдачи
     pPlayer.NextRP_LSCS_IgnoreSave = true
 
     pPlayer:lscsAddInventory(itemClass, autoEquip)
@@ -1630,16 +1649,22 @@ function NextRP.Progression.LSCS:GiveLSCSItem(pPlayer, itemClass, autoEquip)
         pPlayer:lscsBuildPlayerInfo() 
     end
 
-    -- Снимаем блокировку сохранения через кадр
+    -- Снимаем блокировку через кадр
     timer.Simple(0.1, function()
-        if IsValid(pPlayer) then pPlayer.NextRP_LSCS_IgnoreSave = false end
+        if IsValid(pPlayer) then 
+            pPlayer.NextRP_LSCS_IgnoreSave = false 
+        end
     end)
     
-    -- Если это не загрузка персонажа, то сохраняем вручную безопасно
-    if not pPlayer.NextRP_LSCS_IsLoading then
-        local charID = self:GetSecureCharID(pPlayer)
+    -- Сохраняем только если НЕ в режиме загрузки и НЕ в режиме талантов
+    if not pPlayer.NextRP_LSCS_IsLoading and not pPlayer.NextRP_LSCS_TalentsLoading then
+        local charID = self:GetActiveCharID(pPlayer)
         if charID then
-            self:SaveCharacterInventory(pPlayer, charID)
+            timer.Simple(0.2, function()
+                if IsValid(pPlayer) and not pPlayer.NextRP_LSCS_IsLoading then
+                    self:SaveCharacterInventory(pPlayer, charID)
+                end
+            end)
         end
     end
     
@@ -1681,27 +1706,37 @@ function NextRP.Progression.LSCS:ApplyTalentEffects(pPlayer, talent, rank)
 end
 
 -- ============================================================================
--- СОХРАНЕНИЕ И ЗАГРУЗКА (CRITICAL FIX)
+-- СОХРАНЕНИЕ ИНВЕНТАРЯ
 -- ============================================================================
-
 function NextRP.Progression.LSCS:SaveCharacterInventory(pPlayer, charID)
-    charID = charID or self:GetSecureCharID(pPlayer)
+    charID = charID or self:GetActiveCharID(pPlayer)
     
     if not IsValid(pPlayer) or not charID then return end
     if not self:IsInstalled() then return end
     
-    -- !!! ГЛАВНАЯ ЗАЩИТА !!!
-    -- Если персонаж сейчас ЗАГРУЖАЕТСЯ или ему выдается предмет скриптом,
-    -- МЫ НЕ СОХРАНЯЕМ. Иначе мы сохраним неполный инвентарь поверх старого.
+    -- ЗАЩИТА: Не сохраняем во время загрузки
     if pPlayer.NextRP_LSCS_IsLoading or pPlayer.NextRP_LSCS_IgnoreSave then 
+        MsgC(Color(255, 255, 0), "[NextRP] LSCS Save Blocked (Loading/Ignore flag)\n")
         return 
+    end
+
+    -- ЗАЩИТА: Проверяем что CharID соответствует активному персонажу
+    local activeCharID = self:GetActiveCharID(pPlayer)
+    if activeCharID and activeCharID ~= charID then
+        MsgC(Color(255, 0, 0), "[NextRP] LSCS Save Blocked: CharID mismatch! Requested: " .. charID .. ", Active: " .. activeCharID .. "\n")
+        return
     end
 
     local inventory = pPlayer:lscsGetInventory() or {}
     local equipped = pPlayer:lscsGetEquipped() or {}
 
+    -- Проверяем что инвентарь не пустой перед сохранением
+    -- (защита от перезаписи пустым инвентарём)
+    local itemCount = table.Count(inventory)
+    
+    MsgC(Color(0, 200, 200), "[NextRP] LSCS Saving " .. itemCount .. " items for CharID: " .. charID .. "\n")
+
     MySQLite.begin()
-    -- Удаляем только записи конкретного CharID
     MySQLite.query(string.format("DELETE FROM nextrp_lscs_inventory WHERE character_id = %d", charID))
 
     for slot, itemClass in pairs(inventory) do
@@ -1718,35 +1753,43 @@ function NextRP.Progression.LSCS:SaveCharacterInventory(pPlayer, charID)
         ))
     end
     MySQLite.commit()
-    -- Debug для проверки (можно убрать потом)
-    -- MsgC(Color(0,255,0), "[NextRP] Saved LSCS for CharID: "..charID.."\n")
 end
 
+-- ============================================================================
+-- ЗАГРУЗКА ИНВЕНТАРЯ
+-- ============================================================================
 function NextRP.Progression.LSCS:LoadCharacterInventory(pPlayer, charID)
     charID = charID or self:GetSecureCharID(pPlayer)
     
     if not IsValid(pPlayer) or not charID then return end
     if not self:IsInstalled() then return end
 
-    -- ВКЛЮЧАЕМ РЕЖИМ ЗАГРУЗКИ (Блокирует любые сохранения)
+    -- Устанавливаем активный CharID
+    self:SetActiveCharID(pPlayer, charID)
+    
+    -- ВКЛЮЧАЕМ РЕЖИМ ЗАГРУЗКИ
     pPlayer.NextRP_LSCS_IsLoading = true
     pPlayer.NextRP_LSCS_IgnoreSave = true
+    pPlayer.NextRP_LSCS_LoadStartTime = CurTime()
 
     -- Очищаем инвентарь
     self:ClearInventory(pPlayer)
     
+    MsgC(Color(0, 200, 200), "[NextRP] LSCS Loading inventory for CharID: " .. charID .. "\n")
+    
     MySQLite.query(string.format("SELECT * FROM nextrp_lscs_inventory WHERE character_id = %d", charID), function(results)
         if not IsValid(pPlayer) then return end
         
-        -- Проверяем, не сменился ли персонаж пока шел запрос
-        local currentID = self:GetSecureCharID(pPlayer)
-        if currentID ~= charID then
-            MsgC(Color(255, 0, 0), "[NextRP] LSCS Load Aborted: Character Changed mid-load!\n")
+        -- Проверяем что персонаж не сменился пока шел запрос
+        local currentActiveID = self:GetActiveCharID(pPlayer)
+        if currentActiveID ~= charID then
+            MsgC(Color(255, 0, 0), "[NextRP] LSCS Load Aborted: Character Changed! Expected: " .. charID .. ", Current: " .. tostring(currentActiveID) .. "\n")
             pPlayer.NextRP_LSCS_IsLoading = false
             pPlayer.NextRP_LSCS_IgnoreSave = false
             return 
         end
 
+        local loadedCount = 0
         if results then
             for _, row in ipairs(results) do
                 local slot = tonumber(row.slot)
@@ -1758,27 +1801,272 @@ function NextRP.Progression.LSCS:LoadCharacterInventory(pPlayer, charID)
                 elseif equipStatus == 0 then equipArg = false
                 end
                 
-                -- Выдаем предмет (Хук сохранения сработает, но он будет заблокирован флагом IsLoading)
                 pPlayer:lscsAddInventory(itemClass, equipArg, slot)
+                loadedCount = loadedCount + 1
             end
         end
         
-        if pPlayer.lscsBuildPlayerInfo then pPlayer:lscsBuildPlayerInfo() end
+        if pPlayer.lscsBuildPlayerInfo then 
+            pPlayer:lscsBuildPlayerInfo() 
+        end
         
-        MsgC(Color(0, 255, 0), "[NextRP] LSCS Loaded for CharID: " .. charID .. "\n")
+        MsgC(Color(0, 255, 0), "[NextRP] LSCS Loaded " .. loadedCount .. " items for CharID: " .. charID .. "\n")
         
-        -- Снимаем режим загрузки с небольшой задержкой, чтобы все хуки успокоились
-        timer.Simple(1.0, function()
-            if IsValid(pPlayer) then 
-                pPlayer.NextRP_LSCS_IsLoading = false 
-                pPlayer.NextRP_LSCS_IgnoreSave = false
-            end
-        end)
+        -- Отмечаем что загрузка из БД завершена, но флаги ещё не снимаем
+        pPlayer.NextRP_LSCS_DBLoadComplete = true
     end)
 end
 
 -- ============================================================================
--- FIX PICKUP (C-MENU)
+-- УДАЛЯЕМ СТАРЫЕ ХУКИ
+-- ============================================================================
+hook.Remove("NextRP::CharacterSelected", "NextRP::WipeLSCSOnCharSelect")
+hook.Remove("NextRP::CharacterSelected", "NextRP::LSCS_LoadOnSelect")
+hook.Remove("NextRP::CharacterSelected", "NextRP::LoadLSCSFromTalents")
+hook.Remove("NextRP::PlayerChangeCharacter", "NextRP::LSCS_SaveOnSwitch")
+hook.Remove("PlayerDisconnected", "NextRP::LSCS_SaveOnDisconnect")
+hook.Remove("LSCS:PostPlayerInventory", "NextRP::LSCS_SaveOnPickup")
+hook.Remove("LSCS:OnPlayerDroppedItem", "NextRP::LSCS_SaveOnDrop")
+
+-- ============================================================================
+-- НОВЫЕ ХУКИ (ИСПРАВЛЕННЫЕ)
+-- ============================================================================
+
+-- 1. ВЫБОР ПЕРСОНАЖА - ГЛАВНЫЙ ХУК
+-- ВАЖНО: Этот хук получает (pPlayer, newCharID, oldCharID)
+hook.Add("NextRP::CharacterSelected", "NextRP::LSCS_OnCharacterSelected", function(pPlayer, newCharID, oldCharID)
+    if not IsValid(pPlayer) then return end
+    if not NextRP.Progression.LSCS:IsInstalled() then return end
+    
+    MsgC(Color(0, 200, 255), "[NextRP] LSCS Character Change: Old=" .. tostring(oldCharID) .. " -> New=" .. tostring(newCharID) .. "\n")
+    
+    -- ШАГ 1: Сохраняем инвентарь СТАРОГО персонажа (если он был)
+    -- КРИТИЧНО: Делаем это ДО очистки и ДО смены ActiveCharID
+    if oldCharID and tonumber(oldCharID) > 0 then
+        -- Временно снимаем защиту для сохранения
+        local wasLoading = pPlayer.NextRP_LSCS_IsLoading
+        local wasIgnore = pPlayer.NextRP_LSCS_IgnoreSave
+        
+        pPlayer.NextRP_LSCS_IsLoading = false
+        pPlayer.NextRP_LSCS_IgnoreSave = false
+        
+        -- Сохраняем для СТАРОГО CharID напрямую
+        local oldCharIDNum = tonumber(oldCharID)
+        local inventory = pPlayer:lscsGetInventory() or {}
+        local equipped = pPlayer:lscsGetEquipped() or {}
+        local itemCount = table.Count(inventory)
+        
+        if itemCount > 0 then
+            MsgC(Color(255, 200, 0), "[NextRP] LSCS Saving " .. itemCount .. " items for OLD CharID: " .. oldCharIDNum .. "\n")
+            
+            MySQLite.begin()
+            MySQLite.query(string.format("DELETE FROM nextrp_lscs_inventory WHERE character_id = %d", oldCharIDNum))
+            
+            for slot, itemClass in pairs(inventory) do
+                if not itemClass then continue end
+                local equipStatus = -1
+                local eqVal = equipped[slot]
+                if eqVal == true then equipStatus = 1
+                elseif eqVal == false then equipStatus = 0
+                end
+                
+                MySQLite.query(string.format(
+                    "INSERT INTO nextrp_lscs_inventory (character_id, slot, item_class, is_equipped) VALUES (%d, %d, %s, %d)",
+                    oldCharIDNum, slot, MySQLite.SQLStr(itemClass), equipStatus
+                ))
+            end
+            MySQLite.commit()
+        end
+        
+        -- Восстанавливаем флаги если нужно
+        pPlayer.NextRP_LSCS_IsLoading = wasLoading
+        pPlayer.NextRP_LSCS_IgnoreSave = wasIgnore
+    end
+    
+    -- ШАГ 2: Очищаем инвентарь
+    NextRP.Progression.LSCS:ClearInventory(pPlayer)
+    
+    -- ШАГ 3: Сбрасываем все флаги для нового персонажа
+    pPlayer.NextRP_LSCS_IsLoading = false
+    pPlayer.NextRP_LSCS_IgnoreSave = false
+    pPlayer.NextRP_LSCS_TalentsLoading = false
+    pPlayer.NextRP_LSCS_DBLoadComplete = false
+    NextRP.Progression.LSCS:SetActiveCharID(pPlayer, nil)
+    
+    -- ШАГ 4: Загружаем инвентарь нового персонажа
+    if not newCharID or tonumber(newCharID) <= 0 then return end
+    
+    -- Небольшая задержка для стабилизации
+    timer.Simple(0.3, function()
+        if not IsValid(pPlayer) then return end
+        
+        -- Проверяем что персонаж не сменился
+        local currentCharID = pPlayer:GetNVar('nrp_charid')
+        if tonumber(currentCharID) ~= tonumber(newCharID) then
+            MsgC(Color(255, 0, 0), "[NextRP] LSCS Load Cancelled: Character changed during delay\n")
+            return
+        end
+        
+        NextRP.Progression.LSCS:LoadCharacterInventory(pPlayer, tonumber(newCharID))
+    end)
+end)
+
+-- 2. ЗАГРУЗКА ТАЛАНТОВ (с правильными таймингами)
+hook.Add("NextRP::CharacterSelected", "NextRP::LSCS_LoadTalents", function(pPlayer, charID)
+    if not IsValid(pPlayer) then return end
+    if not charID or tonumber(charID) <= 0 then return end
+    if not NextRP.Progression.LSCS:IsInstalled() then return end
+    
+    -- Ждём пока загрузка из БД завершится
+    local checkAttempts = 0
+    local maxAttempts = 30 -- 3 секунды максимум
+    
+    timer.Create("NextRP_LSCS_WaitForLoad_" .. pPlayer:SteamID64(), 0.1, maxAttempts, function()
+        if not IsValid(pPlayer) then 
+            timer.Remove("NextRP_LSCS_WaitForLoad_" .. pPlayer:SteamID64())
+            return 
+        end
+        
+        checkAttempts = checkAttempts + 1
+        
+        -- Проверяем что загрузка из БД завершена
+        if not pPlayer.NextRP_LSCS_DBLoadComplete then
+            if checkAttempts >= maxAttempts then
+                MsgC(Color(255, 0, 0), "[NextRP] LSCS Talents: Timeout waiting for DB load\n")
+            end
+            return
+        end
+        
+        -- Загрузка завершена, удаляем таймер
+        timer.Remove("NextRP_LSCS_WaitForLoad_" .. pPlayer:SteamID64())
+        
+        -- Проверяем что персонаж не сменился
+        local currentCharID = NextRP.Progression.LSCS:GetActiveCharID(pPlayer)
+        if currentCharID ~= tonumber(charID) then
+            MsgC(Color(255, 0, 0), "[NextRP] LSCS Talents Aborted: Character changed\n")
+            return
+        end
+        
+        -- Устанавливаем флаг загрузки талантов
+        pPlayer.NextRP_LSCS_TalentsLoading = true
+        pPlayer.NextRP_LSCS_IgnoreSave = true
+        
+        MsgC(Color(0, 200, 200), "[NextRP] LSCS Loading talents for CharID: " .. charID .. "\n")
+        
+        local tree = NextRP.Progression:GetPlayerTalentTree(pPlayer)
+        if not tree or not tree.talents then 
+            pPlayer.NextRP_LSCS_TalentsLoading = false
+            pPlayer.NextRP_LSCS_IsLoading = false
+            pPlayer.NextRP_LSCS_IgnoreSave = false
+            return 
+        end
+        
+        NextRP.Progression:GetCharacterTalents(pPlayer, function(talents)
+            if not IsValid(pPlayer) then return end
+            
+            -- Ещё раз проверяем персонажа
+            local finalCharID = NextRP.Progression.LSCS:GetActiveCharID(pPlayer)
+            if finalCharID ~= tonumber(charID) then
+                MsgC(Color(255, 0, 0), "[NextRP] LSCS Talents Apply Aborted: Character changed\n")
+                pPlayer.NextRP_LSCS_TalentsLoading = false
+                pPlayer.NextRP_LSCS_IsLoading = false
+                pPlayer.NextRP_LSCS_IgnoreSave = false
+                return
+            end
+            
+            if talents then
+                for talentID, rank in pairs(talents) do
+                    local talent = tree.talents[talentID]
+                    if talent and rank > 0 then
+                        NextRP.Progression.LSCS:ApplyTalentEffects(pPlayer, talent, rank)
+                    end
+                end
+            end
+            
+            -- Завершаем загрузку и снимаем ВСЕ флаги
+            timer.Simple(0.5, function()
+                if IsValid(pPlayer) then
+                    pPlayer.NextRP_LSCS_TalentsLoading = false
+                    pPlayer.NextRP_LSCS_IsLoading = false
+                    pPlayer.NextRP_LSCS_IgnoreSave = false
+                    pPlayer.NextRP_LSCS_DBLoadComplete = false
+                    
+                    MsgC(Color(0, 255, 0), "[NextRP] LSCS Fully loaded for CharID: " .. charID .. "\n")
+                    
+                    -- Финальное сохранение (на случай если таланты добавили предметы)
+                    timer.Simple(0.3, function()
+                        if IsValid(pPlayer) and not pPlayer.NextRP_LSCS_IsLoading then
+                            local saveCharID = NextRP.Progression.LSCS:GetActiveCharID(pPlayer)
+                            if saveCharID and saveCharID == tonumber(charID) then
+                                NextRP.Progression.LSCS:SaveCharacterInventory(pPlayer, saveCharID)
+                            end
+                        end
+                    end)
+                end
+            end)
+        end)
+    end)
+end)
+
+-- 3. ВЫХОД ИГРОКА - Сохраняем инвентарь
+hook.Add("PlayerDisconnected", "NextRP::LSCS_SaveOnDisconnect", function(pPlayer)
+    if not IsValid(pPlayer) then return end
+    if not NextRP.Progression.LSCS:IsInstalled() then return end
+    
+    -- Не сохраняем если была загрузка
+    if pPlayer.NextRP_LSCS_IsLoading then return end
+    
+    local charID = NextRP.Progression.LSCS:GetActiveCharID(pPlayer)
+    if charID then
+        -- Принудительно снимаем флаги для сохранения
+        pPlayer.NextRP_LSCS_IgnoreSave = false
+        NextRP.Progression.LSCS:SaveCharacterInventory(pPlayer, charID)
+    end
+end)
+
+-- 4. ПОДБОР ПРЕДМЕТА - Сохраняем (с защитой)
+hook.Add("LSCS:PostPlayerInventory", "NextRP::LSCS_SaveOnPickup", function(pPlayer, item, index)
+    if not IsValid(pPlayer) then return end
+    
+    -- Защита от сохранения во время загрузки
+    if pPlayer.NextRP_LSCS_IsLoading then return end
+    if pPlayer.NextRP_LSCS_IgnoreSave then return end
+    if pPlayer.NextRP_LSCS_TalentsLoading then return end
+    
+    local charID = NextRP.Progression.LSCS:GetActiveCharID(pPlayer)
+    if not charID then return end
+    
+    -- Небольшая задержка перед сохранением для батчинга
+    timer.Create("NextRP_LSCS_SaveDelay_" .. pPlayer:SteamID64(), 0.5, 1, function()
+        if not IsValid(pPlayer) then return end
+        if pPlayer.NextRP_LSCS_IsLoading or pPlayer.NextRP_LSCS_IgnoreSave then return end
+        
+        local saveCharID = NextRP.Progression.LSCS:GetActiveCharID(pPlayer)
+        if saveCharID and saveCharID == charID then
+            NextRP.Progression.LSCS:SaveCharacterInventory(pPlayer, saveCharID)
+        end
+    end)
+end)
+
+-- 5. ВЫБРОС ПРЕДМЕТА - Сохраняем
+hook.Add("LSCS:OnPlayerDroppedItem", "NextRP::LSCS_SaveOnDrop", function(pPlayer, ent, id, item)
+    if not IsValid(pPlayer) then return end
+    
+    if pPlayer.NextRP_LSCS_IsLoading then return end
+    if pPlayer.NextRP_LSCS_IgnoreSave then return end
+    
+    local charID = NextRP.Progression.LSCS:GetActiveCharID(pPlayer)
+    if charID then
+        timer.Simple(0.3, function()
+            if IsValid(pPlayer) and not pPlayer.NextRP_LSCS_IsLoading then
+                NextRP.Progression.LSCS:SaveCharacterInventory(pPlayer, charID)
+            end
+        end)
+    end
+end)
+
+-- ============================================================================
+-- FIX PICKUP (C-MENU) - Оставляем как было
 -- ============================================================================
 hook.Add("InitPostEntity", "NextRP::FixLSCSPickup", function()
     local classes = {"lscs_pickupable", "lscs_hilt_base", "lscs_crystal_base", "lscs_stance_base", "lscs_force_base"}
@@ -1801,85 +2089,57 @@ hook.Add("InitPostEntity", "NextRP::FixLSCSPickup", function()
 end)
 
 -- ============================================================================
--- ХУКИ
+-- КОНСОЛЬНЫЕ КОМАНДЫ ДЛЯ ДЕБАГА
 -- ============================================================================
-
-hook.Remove("NextRP::CharacterSelected", "NextRP::WipeLSCSOnCharSelect")
-
--- 1. Смена персонажа -> Сохраняем старого
-hook.Add("NextRP::PlayerChangeCharacter", "NextRP::LSCS_SaveOnSwitch", function(pPlayer, oldCharID, newCharID)
-    -- Сохраняем ТОЛЬКО если мы не в режиме загрузки
-    if oldCharID and tonumber(oldCharID) > 0 and not pPlayer.NextRP_LSCS_IsLoading then
-        NextRP.Progression.LSCS:SaveCharacterInventory(pPlayer, tonumber(oldCharID))
-    end
-end)
-
--- 2. Выход -> Сохраняем
-hook.Add("PlayerDisconnected", "NextRP::LSCS_SaveOnDisconnect", function(pPlayer)
-    local charID = NextRP.Progression.LSCS:GetSecureCharID(pPlayer)
-    if charID and not pPlayer.NextRP_LSCS_IsLoading then
-        NextRP.Progression.LSCS:SaveCharacterInventory(pPlayer, charID)
-    end
-end)
-
--- 3. Подбор предмета -> Сохраняем (ЕСЛИ НЕ ЗАГРУЗКА)
-hook.Add("LSCS:PostPlayerInventory", "NextRP::LSCS_SaveOnPickup", function(pPlayer, item, index)
-    -- Если флаг IsLoading или IgnoreSave стоит, то это добавление из базы или от скрипта
-    -- МЫ НЕ ДОЛЖНЫ СОХРАНЯТЬ В ЭТОТ МОМЕНТ
-    if pPlayer.NextRP_LSCS_IsLoading or pPlayer.NextRP_LSCS_IgnoreSave then 
-        return 
-    end
+if SERVER then
+    concommand.Add("nextrp_lscs_debug", function(ply, cmd, args)
+        if not IsValid(ply) then return end
+        if not ply:IsAdmin() then return end
+        
+        print("=== LSCS Debug Info for " .. ply:Nick() .. " ===")
+        print("nrp_charid: " .. tostring(ply:GetNVar('nrp_charid')))
+        print("ActiveCharID: " .. tostring(NextRP.Progression.LSCS:GetActiveCharID(ply)))
+        print("IsLoading: " .. tostring(ply.NextRP_LSCS_IsLoading))
+        print("IgnoreSave: " .. tostring(ply.NextRP_LSCS_IgnoreSave))
+        print("TalentsLoading: " .. tostring(ply.NextRP_LSCS_TalentsLoading))
+        print("DBLoadComplete: " .. tostring(ply.NextRP_LSCS_DBLoadComplete))
+        
+        local inv = ply:lscsGetInventory() or {}
+        print("Inventory Count: " .. table.Count(inv))
+        for slot, item in pairs(inv) do
+            print("  Slot " .. slot .. ": " .. item)
+        end
+        print("==============================")
+    end)
     
-    local charID = NextRP.Progression.LSCS:GetSecureCharID(pPlayer)
-    if charID then
-        NextRP.Progression.LSCS:SaveCharacterInventory(pPlayer, charID)
-    end
-end)
-
--- 4. Выброс предмета -> Сохраняем
-hook.Add("LSCS:OnPlayerDroppedItem", "NextRP::LSCS_SaveOnDrop", function(pPlayer, ent, id, item)
-    if pPlayer.NextRP_LSCS_IsLoading or pPlayer.NextRP_LSCS_IgnoreSave then return end
-    
-    local charID = NextRP.Progression.LSCS:GetSecureCharID(pPlayer)
-    if charID then
-        NextRP.Progression.LSCS:SaveCharacterInventory(pPlayer, charID)
-    end
-end)
-
--- 5. Выбор персонажа -> Загружаем
-hook.Add("NextRP::CharacterSelected", "NextRP::LSCS_LoadOnSelect", function(pPlayer, charID)
-    -- Очищаем
-    NextRP.Progression.LSCS:ClearInventory(pPlayer)
-    
-    if not charID or tonumber(charID) <= 0 then return end
-    
-    -- Задержка 0.5 сек для стабилизации
-    timer.Simple(0.5, function()
-        if IsValid(pPlayer) then
-            NextRP.Progression.LSCS:LoadCharacterInventory(pPlayer, tonumber(charID))
+    concommand.Add("nextrp_lscs_force_save", function(ply, cmd, args)
+        if not IsValid(ply) then return end
+        if not ply:IsAdmin() then return end
+        
+        local charID = NextRP.Progression.LSCS:GetActiveCharID(ply)
+        if charID then
+            ply.NextRP_LSCS_IsLoading = false
+            ply.NextRP_LSCS_IgnoreSave = false
+            NextRP.Progression.LSCS:SaveCharacterInventory(ply, charID)
+            print("[NextRP] Forced LSCS save for CharID: " .. charID)
+        else
+            print("[NextRP] No active CharID to save!")
         end
     end)
-end)
-
--- 6. Догрузка талантов
-hook.Add("NextRP::CharacterSelected", "NextRP::LoadLSCSFromTalents", function(pPlayer, charID)
-    -- Ждем 1.5 сек (после завершения загрузки из базы)
-    timer.Simple(1.5, function()
-        if not IsValid(pPlayer) then return end
-        local secureID = NextRP.Progression.LSCS:GetSecureCharID(pPlayer)
-        if not secureID then return end
-
-        local tree = NextRP.Progression:GetPlayerTalentTree(pPlayer)
-        if not tree or not tree.talents then return end
+    
+    concommand.Add("nextrp_lscs_force_load", function(ply, cmd, args)
+        if not IsValid(ply) then return end
+        if not ply:IsAdmin() then return end
         
-        NextRP.Progression:GetCharacterTalents(pPlayer, function(talents)
-            if not talents then return end
-            for talentID, rank in pairs(talents) do
-                local talent = tree.talents[talentID]
-                if talent and rank > 0 then
-                    NextRP.Progression.LSCS:ApplyTalentEffects(pPlayer, talent, rank)
-                end
-            end
-        end)
+        local charID = tonumber(args[1]) or ply:GetNVar('nrp_charid')
+        if charID and charID > 0 then
+            NextRP.Progression.LSCS:ClearInventory(ply)
+            NextRP.Progression.LSCS:LoadCharacterInventory(ply, charID)
+            print("[NextRP] Forced LSCS load for CharID: " .. charID)
+        else
+            print("[NextRP] Invalid CharID!")
+        end
     end)
-end)
+end
+
+MsgC(Color(0, 255, 0), "[NextRP] LSCS Integration FIXED version loaded!\n")

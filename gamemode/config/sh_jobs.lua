@@ -1562,14 +1562,14 @@ TEAM_CTRP = NextRP.createJob('Боец 104-го', {
 
 TEAM_CTRP = NextRP.createJob('Боец КГ', {
     id = 'cg',
-    model = {'models/aussiwozzi/cgi/base/cg_trooper.mdl'},
+    model = {'models/sg/trooper.mdl'},
     color = Color(255,0,0),
     default_rank = 'TRP',
     ranks = {
         ['TRP'] = {
             sortOrder = 1,
             model = {
-                'models/aussiwozzi/cgi/base/cg_trooper.mdl',
+                'models/sg/trooper.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1591,7 +1591,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['PVT'] = {
             sortOrder = 2,
             model = {
-                'models/aussiwozzi/cgi/base/cg_trooper.mdl',
+                'models/sg/trooper.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1613,7 +1613,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['PV2'] = {
             sortOrder = 3,
             model = {
-                'models/aussiwozzi/cgi/base/cg_trooper.mdl',
+                'models/sg/trooper.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1635,7 +1635,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['PV1'] = {
             sortOrder = 3,
             model = {
-                'models/aussiwozzi/cgi/base/cg_trooper.mdl',
+                'models/sg/trooper.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1657,7 +1657,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['SPC'] = {
             sortOrder = 3,
             model = {
-                'models/aussiwozzi/cgi/base/cg_trooper.mdl',
+                'models/sg/trooper.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1679,7 +1679,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['CPL'] = {
             sortOrder = 4,
             model = {
-                'models/aussiwozzi/cgi/base/cg_trooper.mdl',
+                'models/sg/trooper.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1701,7 +1701,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['JSG'] = {
             sortOrder = 5,
             model = {
-                'models/aussiwozzi/cgi/base/cg_trooper.mdl',
+                'models/sg/trooper.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1723,7 +1723,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['SGT'] = {
             sortOrder = 6,
             model = {
-                'models/aussiwozzi/cgi/base/cg_trooper.mdl',
+                'models/sg/trooper.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1745,7 +1745,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['SSG'] = {
             sortOrder = 7,
             model = {
-                'models/aussiwozzi/cgi/base/cg_trooper.mdl',
+                'models/sg/trooper.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1767,7 +1767,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['JLT'] = {
             sortOrder = 9,
             model = {
-                'models/aussiwozzi/cgi/base/cg_officer.mdl',
+                'models/sg/officer.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1798,7 +1798,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['LT'] = {
             sortOrder = 10,
             model = {
-                'models/aussiwozzi/cgi/base/cg_officer.mdl',
+                'models/sg/officer.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1829,7 +1829,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['SLT'] = {
             sortOrder = 11,
             model = {
-                'models/aussiwozzi/cgi/base/cg_officer.mdl',
+                'models/sg/officer.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1860,7 +1860,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['CPT'] = {
             sortOrder = 12,
             model = {
-                'models/aussiwozzi/cgi/base/cg_officer.mdl',
+                'models/sg/officer.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1891,7 +1891,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['MAJ'] = {
             sortOrder = 13,
             model = {
-                'models/aussiwozzi/cgi/base/cg_officer.mdl',
+                'models/sg/officer.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1922,7 +1922,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['COL'] = {
             sortOrder = 15,
             model = {
-                'models/aussiwozzi/cgi/base/cg_officer.mdl',
+                'models/sg/officer.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1953,7 +1953,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['СС'] = {
             sortOrder = 16,
             model = {
-                'models/aussiwozzi/cgi/base/cg_officer.mdl',
+                'models/sg/officer.mdl',
             },
             hp = 250,
             ar = 40,
@@ -1984,7 +1984,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['SCC'] = {
             sortOrder = 17,
             model = {
-                'models/aussiwozzi/cgi/base/cg_officer.mdl',
+                'models/sg/officer.mdl',
             },
             hp = 250,
             ar = 40,
@@ -2015,7 +2015,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['MC'] = {
             sortOrder = 17,
             model = {
-                'models/aussiwozzi/cgi/base/cg_officer.mdl',
+                'models/sg/officer.mdl',
             },
             hp = 250,
             ar = 40,
@@ -2048,7 +2048,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['Медик'] = {
             id = 'MED',
             model = {
-                'models/aussiwozzi/cgi/base/cg_medic.mdl',
+                'models/sg/medic.mdl',
             },
             weapon = {
                 default = {
@@ -2095,7 +2095,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['Пилот'] = {
             id = 'PIL',
             model = {
-                'models/aussiwozzi/cgi/base/cg_pilot.mdl',
+                'models/sg/pilot.mdl',
             },
             weapon = {
                 default = {
@@ -2122,7 +2122,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['Клон-следователь'] = {
             id = 'SLED',
             model = {
-                'models/aussiwozzi/cgi/base/cg_hound.mdl',
+                'models/sg/arfk9.mdl',
             },
             weapon = {
                 default = {
@@ -2153,7 +2153,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['ГБР'] = {
             id = 'GBR',
             model = {
-                'models/aussiwozzi/cgi/base/cg_riot_officer.mdl',
+                'models/sg/heavy.mdl',
             },
             weapon = {
                 default = {
@@ -2187,7 +2187,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['Агент Гвардии'] = {
             id = 'AGNT',
             model = {
-                'models/aussiwozzi/cgi/base/cg_stone.mdl',
+                'models/sg/riot.mdl',
                 'models/navy/gnavyengineer.mdl',
                 'models/knyajepack/197th_pack/197th_trooper.mdl',
                 'models/55th/ph2/trooper/55th_trp.mdl',
@@ -2224,7 +2224,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['ARC'] = {
             id = 'ARC',
             model = {
-                'models/aussiwozzi/cgi/base/cg_arc.mdl',
+                'models/sg/arc.mdl',
             },
             weapon = {
                 default = {
@@ -2258,7 +2258,7 @@ TEAM_CTRP = NextRP.createJob('Боец КГ', {
         ['Командир КГ'] = {
             id = 'COMBAT',
             model = {
-                'models/aussiwozzi/cgi/base/cg_fox.mdl',
+                'models/sg/fox.mdl',
             },
            weapon = {
                 default = {
