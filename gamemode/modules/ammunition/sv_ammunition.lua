@@ -1,221 +1,130 @@
-local function calcweight(pPlayer)
-    local picked = pPlayer:GetNWInt('picked') or 0
-    
-    -- Если у игрока есть улучшенные скорости от талантов, используем их
-    if pPlayer.TalentEnhancedRunSpeed and pPlayer.TalentEnhancedWalkSpeed then
-        local enhancedRunSpeed = pPlayer.TalentEnhancedRunSpeed
-        local enhancedWalkSpeed = pPlayer.TalentEnhancedWalkSpeed
-        local slowSpeed = enhancedWalkSpeed - 50
-        
-        if picked >= 100 then
-            pPlayer:SetWalkSpeed(enhancedWalkSpeed * 0.65)
-            pPlayer:SetRunSpeed(enhancedRunSpeed * 0.65)
-            pPlayer:SetSlowWalkSpeed(slowSpeed * 0.65)
-        elseif picked >= 50 then
-            pPlayer:SetWalkSpeed(enhancedWalkSpeed * 0.85)
-            pPlayer:SetRunSpeed(enhancedRunSpeed * 0.85)
-            pPlayer:SetSlowWalkSpeed(slowSpeed * 0.85)
-        elseif picked >= 25 then
-            pPlayer:SetWalkSpeed(enhancedWalkSpeed * 0.95)
-            pPlayer:SetRunSpeed(enhancedRunSpeed * 0.95)
-            pPlayer:SetSlowWalkSpeed(slowSpeed * 0.95)
-        else
-            pPlayer:SetWalkSpeed(enhancedWalkSpeed)
-            pPlayer:SetRunSpeed(enhancedRunSpeed)
-            pPlayer:SetSlowWalkSpeed(slowSpeed)
-        end
-    else
-        -- Стандартная логика без талантов
-        local runspeed = pPlayer:getJobTable().runspead or 250
-        local walkspeed = pPlayer:getJobTable().walkspead or 100
-        local slowspeed = walkspeed - 50
-        
-        if picked >= 100 then
-            pPlayer:SetWalkSpeed(walkspeed * 0.65)
-            pPlayer:SetRunSpeed(runspeed * 0.65)
-            pPlayer:SetSlowWalkSpeed(slowspeed * 0.65)
-        elseif picked >= 50 then
-            pPlayer:SetWalkSpeed(walkspeed * 0.85)
-            pPlayer:SetRunSpeed(runspeed * 0.85)
-            pPlayer:SetSlowWalkSpeed(slowspeed * 0.85)
-        elseif picked >= 25 then
-            pPlayer:SetWalkSpeed(walkspeed * 0.95)
-            pPlayer:SetRunSpeed(runspeed * 0.95)
-            pPlayer:SetSlowWalkSpeed(slowspeed * 0.95)
-        else
-            pPlayer:SetWalkSpeed(walkspeed)
-            pPlayer:SetRunSpeed(runspeed)
-            pPlayer:SetSlowWalkSpeed(slowspeed)
-        end
-    end
+local cfg = NextRP.Ammunition.Config
 
-    if ServerMedicMod and ServerMedicMod.EnableLegsTraum and pPlayer:GetNWInt("MedicineModtraumalegs") != 0 then
-        -- Если есть травма ног, применяем дополнительное замедление на 70% (делим на 3)
-        local currentWalkSpeed = pPlayer:GetWalkSpeed()
-        local currentRunSpeed = pPlayer:GetRunSpeed()
-        local currentSlowSpeed = pPlayer:GetSlowWalkSpeed()
-        
-        pPlayer:SetWalkSpeed(currentWalkSpeed / 3)
-        pPlayer:SetRunSpeed(currentRunSpeed / 3)
-        pPlayer:SetSlowWalkSpeed(currentSlowSpeed / 3)
+hook.Add("Initialize", "NextRP::SupplyInit", function()
+    if GetGlobalInt("NextRP_SupplyPoints", -1) == -1 then
+        SetGlobalInt("NextRP_SupplyPoints", cfg.MaxSupply)
     end
+end)
+
+timer.Create("NextRP::SupplyRegen", cfg.RegenInterval, 0, function()
+    local current = GetGlobalInt("NextRP_SupplyPoints", 0)
+    if current < cfg.MaxSupply then
+        SetGlobalInt("NextRP_SupplyPoints", math.min(current + cfg.RegenAmount, cfg.MaxSupply))
+    end
+end)
+
+-- == Вспомогательная функция для сервера ==
+local function GetPlyFlag(ply)
+    if not IsValid(ply) then return "" end
+    
+    local f = ply:GetNWString("Flag")
+    if f and f ~= "" then return f end
+    
+    f = ply:GetNWString("flag")
+    if f and f ~= "" then return f end
+
+    if ply.GetNetVar then
+        f = ply:GetNetVar("Flag")
+        if f and f ~= "" then return f end
+        
+        f = ply:GetNetVar("flag")
+        if f and f ~= "" then return f end
+    end
+    
+    return ""
+end
+-- =========================================
+
+-- Проверка разрешения на получение предмета
+local function CanPlayerGetItem(ply, itemID)
+    local itemData = NextRP.Inventory:GetItemData(itemID)
+    if not itemData or not itemData.weaponClass then return false end
+    
+    local targetWepClass = itemData.weaponClass
+    local jobData = ply:getJobTable()
+    if not jobData then return false end
+    
+    -- Получаем ранг
+    local myRank = ply:GetNWString("Rank", jobData.default_rank or "")
+    if (not myRank or myRank == "") and ply.GetNetVar then myRank = ply:GetNetVar("Rank") or "" end
+    if myRank == "" and jobData.default_rank then myRank = jobData.default_rank end
+
+    -- Получаем флаг
+    local myFlag = GetPlyFlag(ply)
+    
+    local allowed = false
+    
+    -- 1. Проверка ранга
+    if jobData.ranks and jobData.ranks[myRank] then
+        local rankData = jobData.ranks[myRank]
+        if rankData.weapon and rankData.weapon.ammunition then
+            for _, class in pairs(rankData.weapon.ammunition) do
+                if class == targetWepClass then allowed = true break end
+            end
+        end
+    end
+    
+    -- 2. Проверка флага
+    if myFlag ~= "" and jobData.flags then
+        local flagData = jobData.flags[myFlag]
+        
+        if not flagData then
+            for k, v in pairs(jobData.flags) do
+                if v.id == myFlag then flagData = v break end
+            end
+        end
+
+        if flagData and flagData.weapon and flagData.weapon.ammunition then
+             if flagData.replaceWeapon then allowed = false end
+             
+             for _, class in pairs(flagData.weapon.ammunition) do
+                if class == targetWepClass then allowed = true break end
+             end
+        end
+    end
+    
+    return allowed
 end
 
-
-
-netstream.Hook('NextRP::AmmunitionWeps', function(pPlayer, sWep)
-    local picked = pPlayer:GetNWInt('picked')
-    local weight = weapons.Get(sWep).Weight or 5
-    if string.StartsWith(sWep, 'medic') then weight = 0 end
-    local weps = pPlayer.ammunitionweps
-
-    pPlayer.WeaponTimers = pPlayer.WeaponTimers or {}
-    pPlayer.WeaponTimers[sWep] = pPlayer.WeaponTimers[sWep] or CurTime() - 1
-
-    if table.HasValue(weps.ammunition, sWep) or table.HasValue(weps.default, sWep) then
-        if pPlayer:HasWeapon(sWep) then
-            pPlayer:StripWeapon(sWep)
-            pPlayer.WeaponTimers[sWep] = CurTime() + 60
-            pPlayer:SetNWInt('picked', picked - weight)
-        else
-            if picked >= 200 then pPlayer:SendMessage(MESSAGE_TYPE_ERROR, 'Вы не можете нести больше!') end
-            if pPlayer.WeaponTimers[sWep] < CurTime() then
-                pPlayer:Give(sWep)
-                pPlayer:SetNWInt('picked', picked + weight)
-            else
-                pPlayer:SendMessage(MESSAGE_TYPE_ERROR, 'Вам нужно подождать ещё ', Color(71, 141, 255), tostring(math.Round(pPlayer.WeaponTimers[sWep] - CurTime())), color_white, ' секунд, что-бы получить это оружие/экипировку!')
-            end
+netstream.Hook("NextRP::Ammunition::Buy", function(ply, data)
+    if not IsValid(ply) or not ply:Alive() then return end
+    
+    if data.entIndex then
+        local ent = Entity(data.entIndex)
+        if IsValid(ent) and ent:GetClass() == "nextrp_ammunition" then
+            if ply:GetPos():DistToSqr(ent:GetPos()) > 300*300 then return end
         end
-    calcweight(pPlayer)
-    pPlayer:CalcWeight()
     end
-end)
 
-netstream.Hook('NextRP::AmmunitionGiveAll', function(pPlayer)
-    local weps = pPlayer.ammunitionweps
-    pPlayer.WeaponGiveAll = pPlayer.WeaponGiveAll or CurTime() - 1
-    local kolvo = 0
-
-    if pPlayer.WeaponGiveAll < CurTime() then
-        -- Выдаем оружие из ammunition
-        for r, u in pairs(weps.ammunition) do
-            if !pPlayer:HasWeapon(u) then
-                pPlayer:Give(u)
-                kolvo = kolvo + 1
-                
-                -- Добавляем вес каждого оружия
-                local weight = weapons.Get(u).Weight or 5
-                if string.StartsWith(u, 'medic') then weight = 0 end
-                local currentWeight = pPlayer:GetNWInt('picked') or 0
-                pPlayer:SetNWInt('picked', currentWeight + weight)
-            end
-        end
-
-        -- Выдаем оружие из default
-        for r, u in pairs(weps.default) do
-            if !pPlayer:HasWeapon(u) then
-                pPlayer:Give(u)
-                kolvo = kolvo + 1
-                
-                -- Добавляем вес каждого оружия
-                local weight = weapons.Get(u).Weight or 5
-                if string.StartsWith(u, 'medic') then weight = 0 end
-                local currentWeight = pPlayer:GetNWInt('picked') or 0
-                pPlayer:SetNWInt('picked', currentWeight + weight)
-            end
-        end
-
-        if kolvo > 0 then
-            pPlayer.WeaponGiveAll = CurTime() + 60
-        else
-            pPlayer:SendMessage(MESSAGE_TYPE_ERROR, 'У вас уже всё есть!')
-        end
+    local itemID = data.itemID
+    
+    if not CanPlayerGetItem(ply, itemID) then
+        ply:SendMessage(MESSAGE_TYPE_ERROR, "Этот предмет недоступен для вашего звания/должности.")
+        return
+    end
+    
+    local itemDef = NextRP.Inventory:GetItemData(itemID)
+    local price = itemDef.supplyPrice or 0
+    local currentSupply = GetGlobalInt("NextRP_SupplyPoints", 0)
+    
+    if currentSupply < price then
+        ply:SendMessage(MESSAGE_TYPE_ERROR, "На базе недостаточно очков снабжения!")
+        return
+    end
+    
+    local success, err = NextRP.Inventory:AddItem(ply, itemID, 1)
+    
+    if success then
+        SetGlobalInt("NextRP_SupplyPoints", currentSupply - price)
+        ply:SendMessage(MESSAGE_TYPE_SUCCESS, "Вы получили: " .. itemDef.name)
+        ply:EmitSound("items/ammo_pickup.wav")
     else
-        pPlayer:SendMessage(MESSAGE_TYPE_ERROR, 'Вам нужно подождать ещё ', Color(71, 141, 255), tostring(math.Round(pPlayer.WeaponGiveAll - CurTime())), color_white, ' секунд, что-бы получить всё вооружение!')
-    end
-    
-    -- Пересчитываем скорость после изменения веса
-    calcweight(pPlayer)
-    pPlayer:CalcWeight()
-end)
-
-netstream.Hook('NextRP::AmmunitionRemoveAll', function(pPlayer)
-    local weps = pPlayer.ammunitionweps
-    local kolvo = 0
-    
-    pPlayer.WeaponTimers = pPlayer.WeaponTimers or {}
-
-    -- Убираем оружие из ammunition
-    for r, u in pairs(weps.ammunition) do
-        if pPlayer:HasWeapon(u) then
-            pPlayer:StripWeapon(u)
-            pPlayer.WeaponTimers[u] = CurTime() + 60
-            kolvo = kolvo + 1
-            
-            -- Убираем вес каждого оружия
-            local weight = weapons.Get(u).Weight or 5
-            if string.StartsWith(u, 'medic') then weight = 0 end
-            local currentWeight = pPlayer:GetNWInt('picked') or 0
-            pPlayer:SetNWInt('picked', math.max(0, currentWeight - weight))
-        end
-    end
-
-    -- Убираем оружие из default
-    for r, u in pairs(weps.default) do
-        if pPlayer:HasWeapon(u) then
-            pPlayer:StripWeapon(u)
-            pPlayer.WeaponTimers[u] = CurTime() + 60
-            kolvo = kolvo + 1
-            
-            -- Убираем вес каждого оружия
-            local weight = weapons.Get(u).Weight or 5
-            if string.StartsWith(u, 'medic') then weight = 0 end
-            local currentWeight = pPlayer:GetNWInt('picked') or 0
-            pPlayer:SetNWInt('picked', math.max(0, currentWeight - weight))
-        end
-    end
-    
-    -- Пересчитываем скорость после изменения веса
-    calcweight(pPlayer)
-    pPlayer:CalcWeight()
-end)
-netstream.Hook('NextRP::Dispenser', function(pPlayer, type)
-    local tbl = {1,2,3,4,5}
-    local greandetypes = {'grenade', 'arccw_bacta_grenade', 'arccw_flash_grenade', 'arccw_impact_grenade', 'arccw_k_nade_smoke', 'arccw_k_nade_flashbang', 'arccw_k_nade_thermal'}
-
-    if !tbl[type] then return end
-    pPlayer.Dispenser = pPlayer.Dispenser or {}
-    pPlayer.Dispenser[type] = pPlayer.Dispenser[type] or CurTime() - 1
-
-    if type == tbl[1] and pPlayer.Dispenser[type] < CurTime() then
-        pPlayer:GiveAmmo(2000, "ar2", false)
-        pPlayer.Dispenser[type] = CurTime() + 5
-    elseif type == tbl[2] and pPlayer.Dispenser[type] < CurTime() then
-        pPlayer:GiveAmmo(50, "rpg_round", false)
-        pPlayer.Dispenser[type] = CurTime() + 5
-    elseif type == tbl[3] and pPlayer.Dispenser[type] < CurTime() then
-        for _, v in ipairs(greandetypes) do
-            pPlayer:GiveAmmo(5, v, false)
-        end
-        pPlayer.Dispenser[type] = CurTime() + 5
-    elseif type == tbl[4] and pPlayer.Dispenser[type] < CurTime() then
-        if pPlayer:Armor() == pPlayer:GetMaxArmor() then return pPlayer:SendMessage(MESSAGE_TYPE_ERROR, 'У вас и так уже максимум брони!') end
-        pPlayer:SetArmor( pPlayer:Armor() + 50 )
-        if pPlayer:Armor() > pPlayer:GetMaxArmor() then
-            pPlayer:SetArmor( pPlayer:GetMaxArmor() )
-        end
-        pPlayer:EmitSound("npc/roller/code2.wav")
-        pPlayer.Dispenser[type] = CurTime() + 5
-    elseif type == tbl[5] and pPlayer.Dispenser[type] < CurTime() then
-        pPlayer:GiveAmmo(20, "SMG1_Grenade", false)
-        pPlayer.Dispenser[type] = CurTime() + 5
-    else
-        pPlayer:SendMessage(MESSAGE_TYPE_ERROR, 'Вам нужно подождать ещё ', Color(71, 141, 255), tostring(math.Round(pPlayer.Dispenser[type] - CurTime())), color_white, ' секунд, прежде чем взять это!')
+        ply:SendMessage(MESSAGE_TYPE_ERROR, "Ошибка: " .. (err or "Инвентарь полон"))
     end
 end)
 
-hook.Add('PlayerDeath', 'NextRP::ResetWepsTimers', function(pPlayer)
-    pPlayer.WeaponTimers = {}
-    pPlayer.Dispenser = {}
-    pPlayer.WeaponGiveAll = CurTime() - 1
+concommand.Add("nextrp_setsupply", function(ply, cmd, args)
+    if IsValid(ply) and not ply:IsSuperAdmin() then return end
+    local val = tonumber(args[1])
+    if val then SetGlobalInt("NextRP_SupplyPoints", val) end
 end)
