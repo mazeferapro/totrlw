@@ -211,9 +211,9 @@ AddItem("arccw_cgi_k_e9d", "E-9d", "arccw_cgi_k_e9d", "primary", 4, 2, 100, "mod
 AddItem("arccw_cgi_k_republicshield", "Republic Shield", "arccw_cgi_k_republicshield", "special", 2, 2, 150, "models/kraken/cgi/v_cgi_republicshield.mdl", "entities/arccw/kraken/cgi/republic_shield.png")
 AddItem("arccw_cgi_k_rps6", "RPS-6", "arccw_cgi_k_rps6", "primary", 5, 2, 250, "models/kraken/cgi/world/w_cgi_rps6.mdl", "entities/arccw/kraken/cgi/rps6.png")
 AddItem("arccw_cgi_k_westarm5", "Westar M5", "arccw_cgi_k_westarm5", "primary", 4, 2, 100, "models/kraken/cgi/world/w_cgi_westarm5.mdl", "entities/arccw/kraken/cgi/westarm5.png")
-AddItem("arccw_cgi_k_z6", "Z-6", "arccw_cgi_k_z6", "primary", 5, 2, 250, "models/kraken/cgi/world/w_cgi_z6.mdl", "entities/arccw/kraken/cgi/z6.png")
-AddItem("arccw_cgi_k_z6adv", "Z-6 Advanced", "arccw_cgi_k_z6adv", "primary", 5, 2, 250, "models/kraken/cgi/world/w_cgi_z6adv.mdl", "entities/arccw/kraken/cgi/z6adv.png")
-AddItem("arccw_cgi_k_z6chain", "Z-6 Chaingun", "arccw_cgi_k_z6chain", "primary", 5, 2, 250, "models/kraken/cgi/world/w_cgi_z6chain.mdl", "entities/arccw/kraken/cgi/z6chain.png")
+AddItem("arccw_cgi_k_z6", "Z-6", "arccw_cgi_k_z6", "heavy", 5, 2, 250, "models/kraken/cgi/world/w_cgi_z6.mdl", "entities/arccw/kraken/cgi/z6.png")
+AddItem("arccw_cgi_k_z6adv", "Z-6 Advanced", "arccw_cgi_k_z6adv", "heavy", 5, 2, 250, "models/kraken/cgi/world/w_cgi_z6adv.mdl", "entities/arccw/kraken/cgi/z6adv.png")
+AddItem("arccw_cgi_k_z6chain", "Z-6 Chaingun", "arccw_cgi_k_z6chain", "heavy", 5, 2, 250, "models/kraken/cgi/world/w_cgi_z6chain.mdl", "entities/arccw/kraken/cgi/z6chain.png")
 AddItem("arccw_cj9", "CJ-9", "arccw_cj9", "primary", 4, 2, 100, "models/arccw/bf2017/w_dlt19.mdl", "materials/entities/rw_sw_cj9.png")
 AddItem("arccw_cr2", "CR-2", "arccw_cr2", "primary", 4, 2, 100, "models/arccw/bf2017/w_e11.mdl", "materials/entities/rw_sw_cr2.png")
 AddItem("arccw_cr2c", "CR-2C", "arccw_cr2c", "primary", 4, 2, 100, "models/arccw/bf2017/w_e11.mdl", "materials/entities/rw_sw_cr2c.png")
@@ -264,7 +264,7 @@ AddItem("arccw_k_cgi_westar35sg", "WESTAR-35sg", "arccw_k_cgi_westar35sg", "prim
 AddItem("arccw_k_cgi_westar35smg", "WESTAR-35smg", "arccw_k_cgi_westar35smg", "primary", 4, 2, 100, "models/arccw/kraken/w_e11.mdl", "entities/kraken/cgigalactic/westar35smg.png")
 AddItem("arccw_k_cgi_westarm5_heavy", "WESTAR M5 Heavy", "arccw_k_cgi_westarm5_heavy", "primary", 5, 2, 250, "models/arccw/kraken/w_dlt19.mdl", "entities/kraken/cgigalactic/westarm5h.png")
 AddItem("arccw_k_cgi_westarm5_sniper", "WESTAR M5 Sniper", "arccw_k_cgi_westarm5_sniper", "primary", 5, 2, 150, "models/arccw/kraken/w_dlt19.mdl", "entities/kraken/cgigalactic/westarm5s.png")
-AddItem("arccw_k_cgi_z6x_ion", "Z-6 Mortar", "arccw_k_cgi_z6x_ion", "primary", 5, 2, 250, "models/arccw/kraken/w_dlt19.mdl", "entities/kraken/cgigalactic/z6mortar.png")
+AddItem("arccw_k_cgi_z6x_ion", "Z-6 Mortar", "arccw_k_cgi_z6x_ion", "heavy", 5, 2, 250, "models/arccw/kraken/w_dlt19.mdl", "entities/kraken/cgigalactic/z6mortar.png")
 AddItem("arccw_k_coruscantguardshield", "Coruscant Guard Shield", "arccw_k_coruscantguardshield", "special", 2, 2, 150, "models/arccw/kraken-new/republic/v_cgshield.mdl", "entities/arccw/kraken/republic-arsenal/atts/cg_shield.png")
 AddItem("arccw_k_dc15a", "DC-15a", "arccw_k_dc15a", "primary", 4, 2, 100, "models/arccw/kraken-new/republic/w_dc15a.mdl", "entities/arccw/kraken/republic-arsenal/dc15a.png")
 AddItem("arccw_k_dc15a_grenadier", "DC-15a Grenadier", "arccw_k_dc15a_grenadier", "primary", 4, 2, 100, "models/arccw/kraken-new/republic/w_dc15a.mdl", "entities/arccw/kraken/republic-arsenal/dc15a_grenadier.png")
@@ -337,8 +337,8 @@ AddItem("arccw_k_weapon_antimaterial", "K-43", "arccw_k_weapon_antimaterial", "p
 AddItem("arccw_k_weapon_g125", "G-125", "arccw_k_weapon_g125", "primary", 4, 2, 100, "models/arccw/kraken/w_dlt19.mdl", "entities/kraken/explosives/g125.png")
 AddItem("arccw_k_westarm5", "WESTAR M5", "arccw_k_westarm5", "primary", 4, 2, 100, "models/arccw/kraken-new/republic/w_westar.mdl", "entities/arccw/kraken/republic-arsenal/westarm5.png")
 AddItem("arccw_k_z4", "Z-4", "arccw_k_z4", "primary", 4, 2, 100, "models/arccw/kraken-new/cis/w_z4.mdl", "entities/arccw/kraken/republic-arsenal/z4.png")
-AddItem("arccw_k_z6", "Z-6", "arccw_k_z6", "primary", 5, 2, 250, "models/arccw/kraken-new/republic/w_z6.mdl", "entities/arccw/kraken/republic-arsenal/z6.png")
-AddItem("arccw_k_z6adv", "Z-6 Advanced", "arccw_k_z6adv", "primary", 5, 2, 250, "models/arccw/kraken-new/republic/w_z6.mdl", "entities/arccw/kraken/republic-arsenal/z6_adv.png")
+AddItem("arccw_k_z6", "Z-6", "arccw_k_z6", "heavy", 5, 2, 250, "models/arccw/kraken-new/republic/w_z6.mdl", "entities/arccw/kraken/republic-arsenal/z6.png")
+AddItem("arccw_k_z6adv", "Z-6 Advanced", "arccw_k_z6adv", "heavy", 5, 2, 250, "models/arccw/kraken-new/republic/w_z6.mdl", "entities/arccw/kraken/republic-arsenal/z6_adv.png")
 AddItem("arccw_ll30", "LL-30", "arccw_ll30", "primary", 4, 2, 100, "models/arccw/bf2017/w_scoutblaster.mdl", "materials/entities/rw_sw_ll30.png")
 AddItem("arccw_m57", "M-57", "arccw_m57", "primary", 4, 2, 100, "models/arccw/bf2017/w_scoutblaster.mdl", "materials/entities/rw_sw_m57.png")
 AddItem("arccw_nn14", "NN-14", "arccw_nn14", "primary", 4, 2, 100, "models/arccw/bf2017/w_scoutblaster.mdl", "materials/entities/rw_sw_nn14.png")
@@ -395,7 +395,7 @@ AddItem("arccw_sops_republic_md12x", "MD-12x", "arccw_sops_republic_md12x", "pri
 AddItem("arccw_sops_republic_rx21", "RX-21 ", "arccw_sops_republic_rx21", "primary", 4, 2, 100, "models/arccw/kraken/sops/world/w_rx21.mdl", "entities/kraken/sops/rx21.png")
 AddItem("arccw_sops_republic_t702", "T-702", "arccw_sops_republic_t702", "primary", 4, 2, 100, "models/arccw/kraken/sops/world/w_t702.mdl", "entities/kraken/sops/t702.png")
 AddItem("arccw_sops_republic_x11", "X-11", "arccw_sops_republic_x11", "primary", 4, 2, 100, "models/arccw/kraken/sops/world/w_x11.mdl", "entities/kraken/sops/x11.png")
-AddItem("arccw_sops_republic_z6chaingun", "Z-6 Chaingun", "arccw_sops_republic_z6chaingun", "primary", 5, 2, 250, "models/arccw/kraken/sops/world/w_z6chaingun.mdl", "entities/kraken/sops/z6chaingun.png")
+AddItem("arccw_sops_republic_z6chaingun", "Z-6 Chaingun", "arccw_sops_republic_z6chaingun", "heavy", 5, 2, 250, "models/arccw/kraken/sops/world/w_z6chaingun.mdl", "entities/kraken/sops/z6chaingun.png")
 AddItem("arccw_sops_republic_z6x", "ZX-6", "arccw_sops_republic_z6x", "primary", 5, 2, 250, "models/arccw/kraken/sops/world/w_zx6.mdl", "entities/kraken/sops/z6x.png")
 AddItem("arccw_sops_vibroknife", "Vibroknife", "arccw_sops_vibroknife", "special", 1, 1, 30, "models/arccw/kraken/sops/world/w_vibroknife.mdl", "entities/kraken/sops/vibroknife.png")
 AddItem("arccw_tusken_cycler", "Cycler Rifle", "arccw_tusken_cycler", "primary", 4, 2, 100, "models/arccw/bf2017/w_dlt19.mdl", "materials/entities/rw_sw_tusken_cycler.png")
@@ -409,10 +409,10 @@ AddItem("comlink_fixingtool", "Comlink Fixingtool (No File)", "comlink_fixingtoo
 AddItem("cw_flamethrower", "Cw Flamethrower (No File)", "cw_flamethrower", "primary", 4, 2, 100, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
 AddItem("defuser_bomb", "Defuser Bomb (No File)", "defuser_bomb", "special", 2, 1, 50, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
 AddItem("fort_datapad", "Fort Datapad (No File)", "fort_datapad", "special", 2, 1, 50, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
-AddItem("jet_mk1", "Jet Mk1 (No File)", "jet_mk1", "primary", 4, 2, 100, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
-AddItem("jet_mk2", "Jet Mk2 (No File)", "jet_mk2", "primary", 4, 2, 100, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
-AddItem("jet_mk5", "Jet Mk5 (No File)", "jet_mk5", "primary", 4, 2, 100, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
-AddItem("jet_mk6", "Jet Mk6 (No File)", "jet_mk6", "primary", 4, 2, 100, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
+AddItem("jet_mk1", "Jet Mk1 (No File)", "jet_mk1", "special", 4, 2, 100, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
+AddItem("jet_mk2", "Jet Mk2 (No File)", "jet_mk2", "special", 4, 2, 100, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
+AddItem("jet_mk5", "Jet Mk5 (No File)", "jet_mk5", "special", 4, 2, 100, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
+AddItem("jet_mk6", "Jet Mk6 (No File)", "jet_mk6", "special", 4, 2, 100, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
 AddItem("keypad_cracker", "Keypad Cracker (No File)", "keypad_cracker", "primary", 4, 2, 100, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
 AddItem("medic_blood", "Medic Blood (No File)", "medic_blood", "primary", 4, 2, 100, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
 AddItem("medic_dosimetr", "Medic Dosimetr (No File)", "medic_dosimetr", "primary", 4, 2, 100, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
@@ -447,15 +447,70 @@ AddItem("weapon_squadshield_arm", "Squadshield Arm (No File)", "weapon_squadshie
 AddItem("weapon_stunstick", "Stunstick (No File)", "weapon_stunstick", "primary", 4, 2, 100, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
 AddItem("weapon_vibrosword", "Vibrosword (No File)", "weapon_vibrosword", "primary", 4, 2, 100, "models/weapons/w_rif_ak47.mdl", "icon16/gun.png")
 
--- Медикаменты
+
 NextRP.Inventory:RegisterItem({
-    id = "medkit",
-    name = "Аптечка",
-    description = "Восстанавливает 50 HP",
-    icon = "icon16/heart.png",
+    id = "ammo_tibanna",
+    name = "Тибан-газ",
+    description = "Картридж тибана для бластерного оружия. +250 патронов.",
+    icon = "icon16/bullet_blue.png",
+    width = 1,
+    height = 1,
+    stackable = true,
+    maxStack = 5,
+    weight = 0.5,
+    rarity = "common",
+    supplyPrice = 5,
+    ammoType = "ar2",  -- Тип патронов для GiveAmmo
+    ammoAmount = 250,          -- Количество патронов за 1 использование
+    isAmmoItem = true,
+    onUse = function(ply, itemData)
+        if SERVER then
+            local ammoType = itemData.ammoType or "ar2"
+            local ammoAmount = itemData.ammoAmount or 250
+            ply:GiveAmmo(ammoAmount, ammoType, true)
+            ply:EmitSound("items/ammo_pickup.wav")
+            return true
+        end
+    end
+})
+
+-- Ракеты
+NextRP.Inventory:RegisterItem({
+    id = "ammo_rockets",
+    name = "Ракеты",
+    description = "Боеприпасы для ракетных установок. +2 ракеты.",
+    icon = "icon16/bomb.png",
     width = 2,
     height = 1,
-    slotType = "medical",
+    stackable = true,
+    maxStack = 5,
+    weight = 2,
+    rarity = "uncommon",
+    supplyPrice = 5,
+    ammoType = "RPG_Round",   -- Тип ракет
+    ammoAmount = 2,
+    isAmmoItem = true,
+    onUse = function(ply, itemData)
+        if SERVER then
+            local ammoType = itemData.ammoType or "RPG_Round"
+            local ammoAmount = itemData.ammoAmount or 2
+            ply:GiveAmmo(ammoAmount, ammoType, true)
+            ply:EmitSound("items/ammo_pickup.wav")
+            return true
+        end
+    end
+})
+
+
+-- Медикаменты
+NextRP.Inventory:RegisterItem({
+    id = "bacta_inj",
+    name = "Бакта-инжектор",
+    description = "Восстанавливает 100 HP",
+    icon = "icon16/heart.png",
+    width = 2,
+    height = 2,
+    supplyPrice = 10,
     rarity = "common",
     onUse = function(ply)
         if SERVER then
@@ -661,19 +716,6 @@ NextRP.Inventory:RegisterItem({
             slotType = "secondary",
             weaponClass = "arc9_sw_dc17ext",
             rarity = "uncommon"
-        })
-        
-        -- Тяжёлое вооружение
-        NextRP.Inventory:RegisterItem({
-            id = "weapon_z6",
-            name = "Z-6 Роторная пушка",
-            description = "Тяжёлая роторная бластерная пушка",
-            icon = "icon16/bomb.png",
-            width = 4,
-            height = 3,
-            slotType = "heavy",
-            weaponClass = "arc9_sw_z6",
-            rarity = "rare"
         })
         
         NextRP.Inventory:RegisterItem({

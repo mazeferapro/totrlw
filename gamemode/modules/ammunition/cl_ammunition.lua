@@ -1,30 +1,41 @@
+-- ============================================================================
+-- cl_ammunition.lua - С секцией боеприпасов
+-- ============================================================================
+
 local theme = NextRP.Style.Theme
 
--- == Вспомогательная функция для надежного получения флага ==
-local function GetPlyFlag(ply)
+-- == Получаем флаги из nrp_charflags через GetNVar ==
+local function GetPlyFlags(ply)
+    if not IsValid(ply) then return {} end
+    
+    local flags = ply:GetNVar('nrp_charflags')
+    if flags and istable(flags) then
+        return flags
+    end
+    
+    return {}
+end
+
+-- Получаем ранг из nrp_rankid
+local function GetPlyRank(ply, jobData)
     if not IsValid(ply) then return "" end
     
-    -- Список возможных ключей, под которыми может быть спрятан флаг
-    local keysToCheck = {
-        "Flag", "flag", "JobFlag", "jobFlag", "CharFlag", "charFlag", 
-        "RankFlag", "rankFlag", "ActiveFlag", "UserFlag"
-    }
-
-    for _, key in ipairs(keysToCheck) do
-        -- 1. Проверяем NetVars (наиболее вероятно для NextRP)
-        if ply.GetNetVar then
-            local val = ply:GetNetVar(key)
-            if val and val ~= "" then return val end
-        end
-        
-        -- 2. Проверяем NWString
-        local val = ply:GetNWString(key)
-        if val and val ~= "" then return val end
+    local rank = ply:GetNVar('nrp_rankid')
+    if rank and rank ~= "" and rank ~= false then
+        return rank
+    end
+    
+    rank = ply:GetNWString("Rank")
+    if rank and rank ~= "" then
+        return rank
+    end
+    
+    if jobData and jobData.default_rank then
+        return jobData.default_rank
     end
     
     return ""
 end
--- ==========================================================
 
 -- Функция получения списка классов оружия из профессии
 local function GetAvailableWeapons()
@@ -34,62 +45,78 @@ local function GetAvailableWeapons()
     local jobData = ply:getJobTable()
     if not jobData then return {} end
     
-    -- Получаем ранг
-    local myRank = ply:GetNWString("Rank")
-    if (not myRank or myRank == "") and ply.GetNetVar then myRank = ply:GetNetVar("Rank") end
-    if (not myRank or myRank == "") and jobData.default_rank then myRank = jobData.default_rank end
-
-    -- Получаем флаг (исправленным методом)
-    local myFlag = GetPlyFlag(ply)
-
-    -- Дебаг (чтобы вы видели в консоли, что происходит)
-    print("[Ammo Debug] Работа: " .. (jobData.Name or "Unknown"))
-    print("[Ammo Debug] Ранг: " .. tostring(myRank))
-    print("[Ammo Debug] Флаг: '" .. tostring(myFlag) .. "'")
+    local myRank = GetPlyRank(ply, jobData)
+    local myFlags = GetPlyFlags(ply)
 
     local weaponSet = {}
+    local anyFlagReplacesWeapon = false
     
     -- 1. Загружаем оружие РАНГА
     if jobData.ranks and jobData.ranks[myRank] and jobData.ranks[myRank].weapon and jobData.ranks[myRank].weapon.ammunition then
-         for _, v in pairs(jobData.ranks[myRank].weapon.ammunition) do 
+        for _, v in pairs(jobData.ranks[myRank].weapon.ammunition) do 
             weaponSet[v] = true 
-         end
+        end
     end
 
-    -- 2. Загружаем оружие ФЛАГА
-    if myFlag ~= "" and jobData.flags then
-        local flagData = jobData.flags[myFlag]
-        
-        -- Если по ключу не нашли, ищем по ID (для случаев, когда ключ 'Медик', а флаг 'MED')
-        if not flagData then
-            for k, v in pairs(jobData.flags) do
-                if v.id == myFlag then 
-                    flagData = v 
-                    break 
+    -- 2. Загружаем оружие для ВСЕХ активных флагов
+    if jobData.flags and table.Count(myFlags) > 0 then
+        for flagKey, flagActive in pairs(myFlags) do
+            if not flagActive then continue end
+            
+            local flagData = nil
+            
+            if jobData.flags[flagKey] then
+                flagData = jobData.flags[flagKey]
+            else
+                for k, v in pairs(jobData.flags) do
+                    if v.id == flagKey then
+                        flagData = v
+                        break
+                    end
+                end
+            end
+            
+            if flagData then
+                if flagData.replaceWeapon then
+                    anyFlagReplacesWeapon = true
+                end
+                
+                if flagData.weapon and flagData.weapon.ammunition then
+                    for _, v in pairs(flagData.weapon.ammunition) do 
+                        weaponSet[v] = true 
+                    end
                 end
             end
         end
+    end
+    
+    -- Если хотя бы один флаг заменяет оружие
+    if anyFlagReplacesWeapon then
+        weaponSet = {}
         
-        if flagData and flagData.weapon and flagData.weapon.ammunition then
-            print("[Ammo Debug] Конфиг флага найден! Добавляем оружие...")
+        for flagKey, flagActive in pairs(myFlags) do
+            if not flagActive then continue end
             
-            -- ВАЖНО: Если в конфиге работы стоит replaceWeapon = true, то очищаем оружие ранга
-            if flagData.replaceWeapon then
-                print("[Ammo Debug] Флаг заменяет оружие ранга (replaceWeapon=true).")
-                weaponSet = {}
+            local flagData = jobData.flags[flagKey]
+            if not flagData then
+                for k, v in pairs(jobData.flags) do
+                    if v.id == flagKey then flagData = v break end
+                end
             end
             
-            for _, v in pairs(flagData.weapon.ammunition) do 
-                weaponSet[v] = true 
+            if flagData and flagData.weapon and flagData.weapon.ammunition then
+                for _, v in pairs(flagData.weapon.ammunition) do 
+                    weaponSet[v] = true 
+                end
             end
-        else
-             print("[Ammo Debug] Флаг есть, но настройки для него в job.flags не найдены.")
         end
     end
     
-    -- Преобразуем таблицу обратно в список
     local res = {}
-    for k,v in pairs(weaponSet) do table.insert(res, k) end
+    for k, v in pairs(weaponSet) do 
+        table.insert(res, k) 
+    end
+    
     return res
 end
 
@@ -97,7 +124,9 @@ end
 local function FindItemByWeaponClass(targetClass)
     if not NextRP.Inventory or not NextRP.Inventory.Items then return nil end
     if not targetClass then return nil end
+    
     targetClass = string.Trim(targetClass)
+    
     for id, item in pairs(NextRP.Inventory.Items) do
         if item.weaponClass then
             if string.lower(string.Trim(item.weaponClass)) == string.lower(targetClass) then
@@ -105,9 +134,11 @@ local function FindItemByWeaponClass(targetClass)
             end
         end
     end
+    
     return nil
 end
 
+-- Генерация секции оружия
 local function generateWeapons(scrollPanel, weaponList)
     local DCategory = TDLib('DCollapsibleCategory', scrollPanel)
         :Stick(TOP, 2)
@@ -134,15 +165,10 @@ local function generateWeapons(scrollPanel, weaponList)
     DCategory:SetContents(contents)
 
     local foundCount = 0
-    print("----------------------------------------------------------------")
-    print("[Ammo Debug] Генерация меню (Всего: " .. #weaponList .. ")...")
     
     for _, wepClass in pairs(weaponList) do
         local itemData = FindItemByWeaponClass(wepClass)
-        if not itemData then 
-            -- print("[Ammo Debug] Предмет не найден в инвентаре для класса: " .. wepClass)
-            continue 
-        end
+        if not itemData then continue end
         
         foundCount = foundCount + 1
         local pnl = vgui.Create('PawsUI.Panel')
@@ -174,13 +200,15 @@ local function generateWeapons(scrollPanel, weaponList)
             draw.DrawText(price .. " ОС", 'font_sans_18', 1, 25, Color(255, 200, 50), nil, TEXT_ALIGN_LEFT)
         end)
 
+		local price = itemData.supplyPrice or 0
+
         local reciveButton = TDLib('DButton', pnl)
             :ClearPaint()
             :Stick(FILL, 2)
             :Background(NextRP.Style.Theme.Background)
             :FadeHover(NextRP.Style.Theme.Accent)
             :LinedCorners()
-            :On('Think', function(s) s:Text('Получить', 'font_sans_21') end)
+            :On('Think', function(s) s:Text('Получить ' .. '( - ' .. price .. ' cнабжения )', 'font_sans_21') end)
             :On('DoClick', function()
                 netstream.Start('NextRP::Ammunition::Buy', {
                     itemID = itemData.id,
@@ -199,7 +227,114 @@ local function generateWeapons(scrollPanel, weaponList)
         lbl:SetContentAlignment(5)
         contents:AddItem(lbl)
     end
-    print("----------------------------------------------------------------")
+end
+
+-- ============================================================================
+-- ГЕНЕРАЦИЯ СЕКЦИИ БОЕПРИПАСОВ
+-- ============================================================================
+local function generateAmmoSection(scrollPanel)
+    local DCategory = TDLib('DCollapsibleCategory', scrollPanel)
+        :Stick(TOP, 2)
+        :ClearPaint()
+        :On('OnToggle', function(self)
+            if self:GetExpanded() then
+                self.Header:TDLib():ClearPaint():Background(Color(200, 150, 50))
+            else
+                self.Header:TDLib():ClearPaint():Background(Color(100, 80, 30))
+            end
+        end)
+
+    DCategory.Header:TDLib():ClearPaint():Text('Расходники', 'font_sans_21')
+    
+    if DCategory:GetExpanded() then 
+        DCategory.Header:TDLib():Background(Color(200, 150, 50))
+    else 
+        DCategory.Header:TDLib():Background(Color(100, 80, 30)) 
+    end
+
+    DCategory.Header:SetTall(25)
+
+    local contents = vgui.Create('DPanelList', DCategory)
+    contents:SetPadding(0)
+    contents:SetSpacing(4)
+    contents:EnableVerticalScrollbar(true)
+    DCategory:SetContents(contents)
+
+    -- Список боеприпасов для отображения
+    local ammoItems = {
+        "ammo_tibanna",   -- Тибан (основные патроны)
+        "ammo_rockets",   -- Ракеты
+        "bacta_inj",       -- SMG патроны
+        "ammo_ar2",       -- Тяжёлые патроны
+        "ammo_grenades",  -- Гранаты
+    }
+    
+    local foundCount = 0
+    
+    for _, itemID in pairs(ammoItems) do
+        local itemData = NextRP.Inventory:GetItemData(itemID)
+        if not itemData then continue end
+        
+        foundCount = foundCount + 1
+        
+        local pnl = vgui.Create('PawsUI.Panel')
+        pnl:Background(Color(60, 50, 40, 150))
+        pnl:SetTall(64 + 2)
+
+        -- Иконка
+        local icon = vgui.Create('PawsUI.Panel', pnl)
+        icon:Stick(LEFT, 2)
+        if itemData.icon then
+            local wepMat = Material(itemData.icon, 'smooth')
+            if not wepMat:IsError() then
+                icon:Material(wepMat)
+            end
+        end
+        icon:SetWide(64)
+
+        -- Название и цена
+        local title = vgui.Create('PawsUI.Panel', pnl)
+        title:Stick(TOP, 2)
+        title:On('Paint', function(s, w, h)
+            draw.DrawText(itemData.name, 'font_sans_21', 1, 5, NextRP.Style.Theme.Text, nil, TEXT_ALIGN_LEFT)
+            local price = itemData.supplyPrice or 0
+            
+            -- Показываем количество патронов
+            if itemData.ammoAmount then
+                draw.DrawText("+" .. itemData.ammoAmount .. " шт", 'font_sans_16', w - 10, 15, Color(150, 255, 150), TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+            end
+        end)
+
+		local price = itemData.supplyPrice or 0
+		
+
+
+        -- Кнопка получить
+        local reciveButton = TDLib('DButton', pnl)
+            :ClearPaint()
+            :Stick(FILL, 2)
+            :Background(Color(80, 60, 40))
+            :FadeHover(Color(150, 120, 50))
+            :LinedCorners()
+            :On('Think', function(s) s:Text('Получить ' .. '( - ' .. price .. ' cнабжения )' , 'font_sans_21') end)
+            :On('DoClick', function()
+                netstream.Start('NextRP::Ammunition::BuyAmmo', {
+                    itemID = itemData.id,
+                    entIndex = scrollPanel.EntIndex 
+                })
+            end)
+        contents:AddItem(pnl)
+    end
+    
+    if foundCount == 0 then
+        local lbl = vgui.Create("DLabel")
+        lbl:SetText("Боеприпасы не настроены")
+        lbl:SetTextColor(Color(255, 150, 100))
+        lbl:SetFont("font_sans_21")
+        lbl:SizeToContents()
+        lbl:SetContentAlignment(5)
+        contents:AddItem(lbl)
+    end
 end
 
 local function makeBar(val, x, y, w, h, col, angle, max)
@@ -214,16 +349,16 @@ local function makeBar(val, x, y, w, h, col, angle, max)
 end
 
 local function Ammunition(entIndex)
-    print("[Ammo Debug] Открытие меню...")
     local weaponList = GetAvailableWeapons()
     
     local frame = vgui.Create('PawsUI.Frame')
     frame:SetTitle('Арсенал снабжения')
-    frame:SetSize(1000, 600)
+    frame:SetSize(1000, 650)
     frame:MakePopup()
     frame:Center()
     frame:ShowSettingsButton(false)
 
+    -- Правая панель со статистикой
     local leftpanel = vgui.Create('PawsUI.Panel', frame)
         :Stick(RIGHT)
         :Background(Color(53 + 15, 57 + 15, 68 + 15, 100))
@@ -242,14 +377,40 @@ local function Ammunition(entIndex)
 
     local title = vgui.Create('PawsUI.Panel', leftpanel):Stick(TOP, 2):Text('Нагрузка:')
     local weightpanel = vgui.Create('PawsUI.Panel', leftpanel)
-            :ClearPaint():Stick(TOP, 2):Background(NextRP.Style.Theme.Background)
+        :ClearPaint():Stick(TOP, 2):Background(NextRP.Style.Theme.Background)
             :On('Paint', function(s, w, h)
                 local weight = LocalPlayer():GetNWInt('picked', 0)
                 makeBar(weight, 0, 0, w, h, color_white, 0)
                 if weight >= 50 then makeBar(weight-50, 0, 0, w, h, Color(255,0,0), 0) end
             end)
     weightpanel:SetTall(30)
+    
+    -- Информация о патронах игрока
+    local ammoTitle = vgui.Create('PawsUI.Panel', leftpanel):Stick(TOP, 2):Text('Ваши патроны:')
+    local ammoInfoPanel = vgui.Create('PawsUI.Panel', leftpanel)
+        :ClearPaint():Stick(TOP, 2):Background(Color(40, 40, 40, 150))
+        :On('Paint', function(s, w, h)
+            local ply = LocalPlayer()
+            local y = 5
+            
+            -- Показываем патроны разных типов
+            local ammoTypes = {
+                {name = "Pulse", type = "pulse_ammo"},
+                {name = "SMG", type = "smg1"},
+                {name = "AR2", type = "ar2"},
+                {name = "Rockets", type = "RPG_Round"},
+            }
+            
+            for _, ammo in ipairs(ammoTypes) do
+                local count = ply:GetAmmoCount(ammo.type)
+                local col = count > 0 and Color(150, 255, 150) or Color(150, 150, 150)
+                draw.SimpleText(ammo.name .. ": " .. count, "font_sans_16", 10, y, col, TEXT_ALIGN_LEFT)
+                y = y + 18
+            end
+        end)
+    ammoInfoPanel:SetTall(80)
 
+    -- Основной скролл-панель
     local scrollPanel = TDLib('DScrollPanel', frame):Stick(FILL, 2)
     scrollPanel.EntIndex = entIndex
     
@@ -259,9 +420,33 @@ local function Ammunition(entIndex)
     scrollPanelBar.btnDown:TDLib():ClearPaint():Background(theme.DarkScroll):CircleClick()
     scrollPanelBar.btnGrip:TDLib():ClearPaint():Background(theme.Scroll):CircleClick()
 
+    -- Генерируем секции
     generateWeapons(scrollPanel, weaponList)
+    generateAmmoSection(scrollPanel)
 end
 
 netstream.Hook('NextRP::OpenAmmunitionMenu', function(data)
     Ammunition(data and data.entIndex)
+end)
+
+-- Debug команда
+concommand.Add("ammo_debug_flag", function()
+    local ply = LocalPlayer()
+    print("=== AMMUNITION DEBUG ===")
+    
+    local flags = ply:GetNVar('nrp_charflags')
+    if flags and istable(flags) then
+        if table.Count(flags) > 0 then
+            for k, v in pairs(flags) do
+                print("  ['" .. tostring(k) .. "'] = " .. tostring(v))
+            end
+        else
+            print("  (пустая таблица)")
+        end
+    else
+        print("  = " .. tostring(flags))
+    end
+    
+    print("GetNVar('nrp_rankid'): '" .. tostring(ply:GetNVar('nrp_rankid')) .. "'")
+    print("========================")
 end)

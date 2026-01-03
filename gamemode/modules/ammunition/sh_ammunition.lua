@@ -3,7 +3,7 @@ NextRP.Ammunition = NextRP.Ammunition or {}
 NextRP.Ammunition.Config = {
     MaxSupply = 10000,       -- Максимум очков снабжения на сервере
     RegenAmount = 50,        -- Сколько восстанавливается
-    RegenInterval = 60,      -- Раз в сколько секунд (1 минута)
+    RegenInterval = 300,      -- Раз в сколько секунд (1 минута)
 }
 
 -- Вспомогательная функция для получения таблицы профессии игрока
