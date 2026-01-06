@@ -628,45 +628,37 @@ function NextRP.Inventory:UnequipItem(pPlayer, slotType, slotIndex)
     
     local steamID = pPlayer:SteamID64()
     
-    -- Получаем текущую экипировку
     local equip = self.PlayerEquipment[steamID] and self.PlayerEquipment[steamID][charID]
     if not equip or not equip[slotType] or not equip[slotType][slotIndex] then return false end
     
     local item = equip[slotType][slotIndex]
     local itemData = self:GetItemData(item.itemID)
     
-    -- 1. Пробуем добавить предмет обратно в инвентарь
-    -- (AddItem сам сохранит изменения в инвентаре)
-    local success, err = self:AddItem(pPlayer, item.itemID, item.amount)
+    -- [ДОБАВЛЕНО] Сначала проверяем, есть ли место в инвентаре
+    -- Имитируем добавление, чтобы проверить место (или полагаемся на AddItem)
+    -- Но лучше сначала забрать оружие, если AddItem вернет false - вернем оружие обратно? 
+    -- Проще: если AddItem успешен, то забираем оружие.
     
-    if success then
-        -- 2. Если предмет успешно добавлен в инвентарь, ЗАБИРАЕМ оружие из рук
-        if itemData and itemData.weaponClass then
-            pPlayer:StripWeapon(itemData.weaponClass)
-        end
-        
-        -- 3. [ВАЖНО] Прямое удаление из базы данных
-        -- Мы делаем это вручную, так как SaveCharacterInventory игнорирует удаленные ключи (nil)
-        MySQLite.query(string.format(
-            "DELETE FROM nextrp_equipment WHERE character_id = %d AND slot_type = %s AND slot_index = %d",
-            charID,
-            MySQLite.SQLStr(slotType),
-            slotIndex
-        ))
-
-        -- 4. Удаляем предмет из памяти сервера
-        equip[slotType][slotIndex] = nil
-        
-        -- 5. Синхронизируем изменения с клиентом (чтобы слот визуально освободился)
-        self:SyncInventoryToClient(pPlayer)
-        
-        print("[Inventory] Предмет снят, удален из БД и перемещен в инвентарь:", slotType, slotIndex)
-        return true
-    else
-        -- Если места в инвентаре нет
+    -- Пробуем добавить в инвентарь
+    local success, err = self:AddItem(pPlayer, item.itemID, item.amount)
+    if not success then 
+        -- [ДОБАВЛЕНО] Сообщаем игроку об ошибке
         pPlayer:ChatPrint("Не удалось снять предмет: " .. (err or "нет места"))
-        return false
+        return false, err 
     end
+    
+    -- [ДОБАВЛЕНО] Если предмет добавлен в инвентарь успешно, забираем оружие из рук
+    if itemData and itemData.weaponClass then
+        pPlayer:StripWeapon(itemData.weaponClass)
+    end
+
+    -- Убираем из экипировки в БД/Памяти
+    equip[slotType][slotIndex] = nil
+    
+    self:SyncInventoryToClient(pPlayer)
+    self:SaveCharacterInventory(pPlayer, charID)
+    
+    return true
 end
 -- ============================================================================
 -- ВЫБРОС ПРЕДМЕТОВ
@@ -1290,218 +1282,3 @@ concommand.Add("inv_give", function(ply, cmd, args)
     -- Перенаправляем на основную команду
     RunConsoleCommand("nextrp_giveitem", unpack(args))
 end)
-
-
--- ============================================================================
--- ФИКС ГРАНАТ v2 - добавить в конец sv_inventory.lua
--- Более агрессивная проверка слотов
--- ============================================================================
-
--- Таблица для отслеживания оружия игроков
-NextRP.Inventory.TrackedWeapons = NextRP.Inventory.TrackedWeapons or {}
-
--- Функция очистки слота по классу оружия
-function NextRP.Inventory:ClearEquipmentSlotByWeapon(pPlayer, weaponClass)
-    if not IsValid(pPlayer) then return false end
-    
-    local charID = self:GetCharacterID(pPlayer)
-    if not charID then return false end
-    
-    local steamID = pPlayer:SteamID64()
-    local equip = self.PlayerEquipment[steamID] and self.PlayerEquipment[steamID][charID]
-    if not equip then return false end
-    
-    local cleared = false
-    
-    -- Проверяем все слоты снаряжения
-    for slotType, slots in pairs(equip) do
-        for slotIndex, item in pairs(slots) do
-            if item and item.itemID then
-                local itemData = self:GetItemData(item.itemID)
-                if itemData and itemData.weaponClass and itemData.weaponClass == weaponClass then
-                    -- Освобождаем слот
-                    equip[slotType][slotIndex] = nil
-                    cleared = true
-                    
-                    -- Удаляем из БД
-                    MySQLite.query(string.format(
-                        "DELETE FROM nextrp_equipment WHERE character_id = %d AND slot_type = %s AND slot_index = %d",
-                        charID,
-                        MySQLite.SQLStr(slotType),
-                        slotIndex
-                    ))
-                    
-                    MsgC(Color(255, 200, 0), "[NextRP Inventory] Слот " .. slotType .. "[" .. slotIndex .. "] освобождён (оружие " .. weaponClass .. ")\n")
-                end
-            end
-        end
-    end
-    
-    if cleared then
-        self:SyncInventoryToClient(pPlayer)
-    end
-    
-    return cleared
-end
-
--- Функция проверки всех слотов игрока
-function NextRP.Inventory:ValidateEquipmentSlots(pPlayer)
-    if not IsValid(pPlayer) then return end
-    
-    local charID = self:GetCharacterID(pPlayer)
-    if not charID then return end
-    
-    local steamID = pPlayer:SteamID64()
-    local equip = self.PlayerEquipment[steamID] and self.PlayerEquipment[steamID][charID]
-    if not equip then return end
-    
-    local needSync = false
-    
-    for slotType, slots in pairs(equip) do
-        for slotIndex, item in pairs(slots) do
-            if item and item.itemID then
-                local itemData = self:GetItemData(item.itemID)
-                if itemData and itemData.weaponClass then
-                    -- Проверяем есть ли оружие у игрока
-                    if not pPlayer:HasWeapon(itemData.weaponClass) then
-                        -- Очищаем слот
-                        equip[slotType][slotIndex] = nil
-                        needSync = true
-                        
-                        MySQLite.query(string.format(
-                            "DELETE FROM nextrp_equipment WHERE character_id = %d AND slot_type = %s AND slot_index = %d",
-                            charID,
-                            MySQLite.SQLStr(slotType),
-                            slotIndex
-                        ))
-                        
-                        MsgC(Color(255, 150, 0), "[NextRP Inventory] Очищен слот " .. slotType .. "[" .. slotIndex .. "] - оружие " .. itemData.weaponClass .. " отсутствует\n")
-                    end
-                end
-            end
-        end
-    end
-    
-    if needSync then
-        self:SyncInventoryToClient(pPlayer)
-    end
-end
-
--- Обновляем список оружия игрока
-local function UpdateTrackedWeapons(ply)
-    if not IsValid(ply) then return end
-    
-    local steamID = ply:SteamID64()
-    local weapons = {}
-    
-    for _, wep in pairs(ply:GetWeapons()) do
-        if IsValid(wep) then
-            weapons[wep:GetClass()] = true
-        end
-    end
-    
-    NextRP.Inventory.TrackedWeapons[steamID] = weapons
-end
-
--- Проверяем какое оружие пропало
-local function CheckMissingWeapons(ply)
-    if not IsValid(ply) then return end
-    
-    local steamID = ply:SteamID64()
-    local oldWeapons = NextRP.Inventory.TrackedWeapons[steamID] or {}
-    local currentWeapons = {}
-    
-    for _, wep in pairs(ply:GetWeapons()) do
-        if IsValid(wep) then
-            currentWeapons[wep:GetClass()] = true
-        end
-    end
-    
-    -- Ищем пропавшее оружие
-    for wepClass, _ in pairs(oldWeapons) do
-        if not currentWeapons[wepClass] then
-            -- Оружие пропало - очищаем слот
-            NextRP.Inventory:ClearEquipmentSlotByWeapon(ply, wepClass)
-        end
-    end
-    
-    -- Обновляем список
-    NextRP.Inventory.TrackedWeapons[steamID] = currentWeapons
-end
-
--- Think хук для постоянной проверки (каждые 0.5 сек)
-local nextCheck = 0
-hook.Add("Think", "NextRP::Inventory::WeaponCheck", function()
-    if CurTime() < nextCheck then return end
-    nextCheck = CurTime() + 0.5
-    
-    for _, ply in ipairs(player.GetAll()) do
-        if IsValid(ply) and ply:Alive() then
-            CheckMissingWeapons(ply)
-        end
-    end
-end)
-
--- Инициализация при загрузке персонажа
-hook.Add("NextRP::CharacterLoaded", "NextRP::Inventory::InitTracking", function(ply)
-    if IsValid(ply) then
-        timer.Simple(1, function()
-            if IsValid(ply) then
-                UpdateTrackedWeapons(ply)
-            end
-        end)
-    end
-end)
-
--- При спавне игрока
-hook.Add("PlayerSpawn", "NextRP::Inventory::SpawnTracking", function(ply)
-    timer.Simple(0.5, function()
-        if IsValid(ply) then
-            UpdateTrackedWeapons(ply)
-        end
-    end)
-end)
-
--- При получении оружия
-hook.Add("PlayerCanPickupWeapon", "NextRP::Inventory::PickupTracking", function(ply, wep)
-    timer.Simple(0.1, function()
-        if IsValid(ply) then
-            UpdateTrackedWeapons(ply)
-        end
-    end)
-end)
-
--- Хук на выдачу оружия
-hook.Add("WeaponEquip", "NextRP::Inventory::EquipTracking", function(wep, ply)
-    timer.Simple(0.1, function()
-        if IsValid(ply) then
-            UpdateTrackedWeapons(ply)
-        end
-    end)
-end)
-
--- Команда для ручной проверки
-concommand.Add("nextrp_validate_slots", function(ply, cmd, args)
-    if IsValid(ply) then
-        NextRP.Inventory:ValidateEquipmentSlots(ply)
-        ply:ChatPrint("[Inventory] Слоты проверены и синхронизированы")
-    end
-end)
-
--- Админ команда для проверки всех игроков
-concommand.Add("nextrp_validate_all_slots", function(ply, cmd, args)
-    if IsValid(ply) and not ply:IsSuperAdmin() then return end
-    
-    for _, p in ipairs(player.GetAll()) do
-        NextRP.Inventory:ValidateEquipmentSlots(p)
-    end
-    
-    local msg = "[Inventory] Слоты всех игроков проверены"
-    if IsValid(ply) then
-        ply:ChatPrint(msg)
-    else
-        print(msg)
-    end
-end)
-
-MsgC(Color(0, 255, 100), "[NextRP Inventory] Фикс гранат v2 загружен!\n")

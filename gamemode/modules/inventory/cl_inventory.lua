@@ -245,11 +245,11 @@ function NextRP.Inventory:CreateEquipmentSection(parent, slotType, slotConfig)
     section.SlotType = slotType
     
     local slotNames = {
-        primary = "Основное оружие (Primary)",
-        secondary = "Второстепенное оружие (Secondary)",
-        heavy = "Тяжёлое оружие (Heavy)",
-        special = "Специальное снаряжение (Special)",
-        medical = "Медицинское снаряжение (Medical)"
+        primary = "Основное оружие",
+        secondary = "Второстепенное",
+        heavy = "Тяжёлое снаряжение",
+        special = "Специальное",
+        medical = "Медицинское"
     }
     
     section.Paint = function(pnl, w, h)
@@ -287,7 +287,7 @@ function NextRP.Inventory:CreateEquipmentSection(parent, slotType, slotConfig)
             
             if isLocked then
                 -- Иконка замка и цена
-                draw.SimpleText("+", "PawsUI.Text.Normal", w/2, h/2 - 10, theme.Text, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+                draw.SimpleText("🔒", "PawsUI.Text.Normal", w/2, h/2 - 10, theme.Text, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
                 draw.SimpleText(slotConfig.costPerSlot .. " кр.", "PawsUI.Text.Small", w/2, h/2 + 10, theme.Gold or Color(255, 215, 0), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
             else
                 -- Проверяем есть ли предмет
@@ -636,6 +636,24 @@ function NextRP.Inventory:ShowItemMenu(itemPanel)
         end):SetIcon("icon16/accept.png")
     end
     
+    if itemData.slotType then
+        menu:AddOption("Экипировать", function()
+            -- Находим свободный слот
+            local unlocked = self:GetUnlockedSlotCount(itemData.slotType)
+            for i = 1, unlocked do
+                local equip = self.LocalData.equipment[itemData.slotType]
+                if not equip or not equip[tostring(i)] then
+                    netstream.Start("NextRP::InventoryEquipItem", {
+                        uniqueID = itemPanel.UniqueID,
+                        slotType = itemData.slotType,
+                        slotIndex = i,
+                        fromStorage = itemPanel.GridType == "storage"
+                    })
+                    break
+                end
+            end
+        end):SetIcon("icon16/shield.png")
+    end
     
     if itemData.canDrop then
         menu:AddOption("Выбросить", function()
@@ -709,10 +727,9 @@ function NextRP.Inventory:ShowItemTooltip(itemPanel)
         
         -- Размер
         draw.SimpleText("Размер: " .. (itemData.width or 1) .. "x" .. (itemData.height or 1), "PawsUI.Text.Small", 10, 75, theme.Text)
-
-        -- Слот
-        draw.SimpleText("Слот: " .. (itemData.slotType or "нет слота."), "PawsUI.Text.Small", 10, 95, theme.Text)
         
+        -- Вес
+        draw.SimpleText("Вес: " .. (itemData.weight or 0) .. " кг", "PawsUI.Text.Small", 10, 95, theme.Text)
         
         surface.SetDrawColor(self:GetRarityColor(itemData.rarity))
         surface.DrawOutlinedRect(0, 0, w, h, 2)

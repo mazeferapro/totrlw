@@ -17,11 +17,9 @@ function ENT:Initialize()
 	self:SetUseType(SIMPLE_USE)
 end
  
-function ENT:Use(activator, caller)
-    if not IsValid(activator) or not activator:IsPlayer() then return end
-    
-    -- Отправляем netstream с ID энтити
-    netstream.Start(activator, "NextRP::OpenAmmunitionMenu", {
-        entIndex = self:EntIndex()
-    })
+function ENT:Use( activator, caller )
+	if caller:IsPlayer() then
+		local weps = caller.ammunitionweps
+		netstream.Start(caller, 'NextRP::OpenAmmunitionMenu', weps.ammunition, weps.default)
+	end
 end
