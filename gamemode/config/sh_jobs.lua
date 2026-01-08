@@ -66,9 +66,10 @@ TEAM_501TRP = NextRP.createJob('Боец 501-го', {
             ar = 50,
             weapon = {
                 default = {
-                    'arccw_cgi_k_dc17_stun',
                 },
                 ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_cgi_k_dc17_stun',
                     'arccw_cgi_k_dc15a_stun',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
@@ -86,9 +87,10 @@ TEAM_501TRP = NextRP.createJob('Боец 501-го', {
             ar = 50,
             weapon = {
                 default = {
-                    'arccw_cgi_k_dc17_stun',
                 },
                 ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_cgi_k_dc17_stun',
                     'arccw_cgi_k_dc15a_stun',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
@@ -106,9 +108,10 @@ TEAM_501TRP = NextRP.createJob('Боец 501-го', {
             ar = 50,
             weapon = {
                 default = {
-                    'arccw_cgi_k_dc17_stun',
                 },
                 ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_cgi_k_dc17_stun',
                     'arccw_cgi_k_dc15a_stun',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
@@ -126,9 +129,10 @@ TEAM_501TRP = NextRP.createJob('Боец 501-го', {
             ar = 50,
             weapon = {
                 default = {
-                    'arccw_cgi_k_dc17_stun',
                 },
                 ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_cgi_k_dc17_stun',
                     'arccw_cgi_k_dc15a_stun',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
@@ -146,9 +150,10 @@ TEAM_501TRP = NextRP.createJob('Боец 501-го', {
             ar = 50,
             weapon = {
                 default = {
-                    'arccw_cgi_k_dc17_stun',
                 },
                 ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_cgi_k_dc17_stun',
                     'arccw_cgi_k_dc15a_stun',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
@@ -166,9 +171,10 @@ TEAM_501TRP = NextRP.createJob('Боец 501-го', {
             ar = 50,
             weapon = {
                 default = {
-                    'arccw_cgi_k_dc17_stun',
                 },
                 ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_cgi_k_dc17_stun',
                     'arccw_cgi_k_dc15a_stun',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
@@ -186,9 +192,10 @@ TEAM_501TRP = NextRP.createJob('Боец 501-го', {
             ar = 50,
             weapon = {
                 default = {
-                    'arccw_cgi_k_dc17_stun',
                 },
                 ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_cgi_k_dc17_stun',
                     'arccw_cgi_k_dc15a_stun',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
@@ -207,9 +214,10 @@ TEAM_501TRP = NextRP.createJob('Боец 501-го', {
             ar = 50,
             weapon = {
                 default = {
-                    'arccw_cgi_k_dc17_stun',
                 },
                 ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_cgi_k_dc17_stun',
                     'arccw_cgi_k_dc15a_stun',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
@@ -228,9 +236,10 @@ TEAM_501TRP = NextRP.createJob('Боец 501-го', {
             ar = 50,
             weapon = {
                 default = {
-                    'arccw_cgi_k_dc17_stun',
                 },
                 ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_cgi_k_dc17_stun',
                     'arccw_cgi_k_dc15a_stun',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
@@ -249,9 +258,10 @@ TEAM_501TRP = NextRP.createJob('Боец 501-го', {
             ar = 55,
             weapon = {
                 default = {
-                    'arccw_cgi_k_dc17_stun',
                 },
                 ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_cgi_k_dc17_stun',
                     'arccw_cgi_k_dc15a_stun',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
@@ -270,9 +280,10 @@ TEAM_501TRP = NextRP.createJob('Боец 501-го', {
             ar = 55,
             weapon = {
                 default = {
-                    'arccw_cgi_k_dc17_stun',
                 },
                 ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_cgi_k_dc17_stun',
                     'arccw_cgi_k_dc15a_stun',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
@@ -291,9 +302,10 @@ TEAM_501TRP = NextRP.createJob('Боец 501-го', {
             ar = 55,
             weapon = {
                 default = {
-                    'arccw_cgi_k_dc17_stun',
                 },
                 ammunition = {
+                    'arccw_cgi_k_dc15s_stun',
+                    'arccw_cgi_k_dc17_stun',
                     'arccw_cgi_k_dc15a_stun',
                     'arccw_k_nade_thermal',
                     'realistic_hook',
@@ -312,10 +324,9 @@ TEAM_501TRP = NextRP.createJob('Боец 501-го', {
             ar = 60,
             weapon = {
                 default = {
-                    'arccw_cgi_k_akimbo_dc17_ext',
                 },
                 ammunition = {
-                    'arccw_k_dc15s',
+                    'arccw_cgi_k_dc15s_stun',
                     'arccw_k_nade_thermal',
                     'jet_mk5',
                     'arccw_k_z6adv',
@@ -8498,7 +8509,7 @@ TEAM_ARCNULLRP = NextRP.createJob('Боец ARC Null', {
     id = 'arcnullrp', -- УНИКАЛЬНЫЙ ID ПРОФЫ, без него вся система персонажей идёт нахуй
     -- Модель(и)
     model = { -- Модели
-                'models/player/gary/starwars/arc/alpha_aden.mdl'
+                'models/wf/nulled/aden.mdl'
             },
     color = Color(127, 143, 166),
     -- Звания
@@ -8509,7 +8520,7 @@ TEAM_ARCNULLRP = NextRP.createJob('Боец ARC Null', {
             sortOrder = 1,
             -- Основные настройки
             model = { -- Модели
-                'models/player/gary/starwars/arc/alpha_aden.mdl',
+                'models/wf/nulled/aden.mdl',
             },
             hp = 500, -- ХП
             ar = 50, -- Армор
@@ -8530,7 +8541,7 @@ TEAM_ARCNULLRP = NextRP.createJob('Боец ARC Null', {
             sortOrder = 1,
             -- Основные настройки
             model = { -- Модели
-                'models/player/gary/starwars/arc/alpha_aden.mdl',
+                'models/wf/nulled/aden.mdl',
             },
             hp = 500, -- ХП
             ar = 50, -- Армор
@@ -8551,7 +8562,7 @@ TEAM_ARCNULLRP = NextRP.createJob('Боец ARC Null', {
             sortOrder = 1,
             -- Основные настройки
             model = { -- Модели
-                'models/player/gary/starwars/arc/alpha_aden.mdl',
+                'models/wf/nulled/aden.mdl',
             },
             hp = 500, -- ХП
             ar = 50, -- Армор
@@ -8572,26 +8583,25 @@ TEAM_ARCNULLRP = NextRP.createJob('Боец ARC Null', {
         ['Прудии'] = {
             id = 'Prudii',
             model = {
-                'models/player/gary/starwars/arc/alpha_prudii.mdl',
+                'models/wf/nulled/prudii.mdl',
+                'models/kylejwest/synergyroleplay/sr3dnullprudiimando/sr3dnullprudiimando.mdl',
             },
             weapon = {
                 ammunition = {
-                    'arc9_k_westarm5',
-                    'arc9_k_dc15le',
-                    'arc9_k_dp24c',
-                    'arc9_k_launcher_rps6_republic',
-                    'arc9_k_nade_thermal',
-                    'arc9_k_nade_sonar',
-                    'arc9_k_z6',
+                    'arccw_cgi_k_westarm5',
+                    'arccw_k_cgi_westarm5_sniper',
+                    'arccw_k_launcher_rps6',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_sonar',
+                    'arccw_cgi_k_z6adv',
                     'jet_mk5',
                     'weapon_bactainjector',
                     'weapon_defibrillator',
-                    'arc9_k_nade_bacta',
+                    'arccw_k_nade_bacta',
                     'fort_datapad',
                     'defuser_bomb',
                     'weapon_stunstick',
                     'weapon_cuff_elastic',
-                    'medic_medkit',
                 },
                 default = {
                     'arc9_k_dc17_stun',
@@ -8606,26 +8616,25 @@ TEAM_ARCNULLRP = NextRP.createJob('Боец ARC Null', {
         ['Джайнг'] = {
             id = 'Jaing',
             model = {
-                'models/player/gary/starwars/arc/alpha_jaing.mdl',
+                'models/wf/nulled/jaing.mdl',
+                'models/kylejwest/synergyroleplay/sr3dnulljaingmando/sr3dnulljaingmando.mdl',
             },
             weapon = {
                 ammunition = {
-                    'arc9_k_westarm5',
-                    'arc9_k_dc15le',
-                    'arc9_k_dp24c',
-                    'arc9_k_launcher_rps6_republic',
-                    'arc9_k_nade_thermal',
-                    'arc9_k_nade_sonar',
-                    'arc9_k_z6',
+                    'arccw_cgi_k_westarm5',
+                    'arccw_k_cgi_westarm5_sniper',
+                    'arccw_k_launcher_rps6',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_sonar',
+                    'arccw_cgi_k_z6adv',
                     'jet_mk5',
                     'weapon_bactainjector',
                     'weapon_defibrillator',
-                    'arc9_k_nade_bacta',
+                    'arccw_k_nade_bacta',
                     'fort_datapad',
                     'defuser_bomb',
                     'weapon_stunstick',
                     'weapon_cuff_elastic',
-                    'medic_medkit',
                 },
                 default = {
                     'arc9_k_dc17_stun',
@@ -8640,39 +8649,25 @@ TEAM_ARCNULLRP = NextRP.createJob('Боец ARC Null', {
         ['Комрк'] = {
             id = 'Komrk',
             model = {
-                'models/player/gary/starwars/arc/alpha_komrk.mdl',
+                'models/wf/nulled/komrk.mdl',
+                'models/kylejwest/synergyroleplay/sr3dnullkomrkmando/sr3dnullkomrkmando.mdl',
             },
             weapon = {
                 ammunition = {
-                    'arc9_k_westarm5',
-                    'arc9_k_dc15le',
-                    'arc9_k_dp24c',
-                    'arc9_k_launcher_rps6_republic',
-                    'arc9_k_nade_thermal',
-                    'arc9_k_nade_sonar',
-                    'arc9_k_z6',
+                    'arccw_cgi_k_westarm5',
+                    'arccw_k_cgi_westarm5_sniper',
+                    'arccw_k_launcher_rps6',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_sonar',
+                    'arccw_cgi_k_z6adv',
                     'jet_mk5',
                     'weapon_bactainjector',
                     'weapon_defibrillator',
-                    'arc9_k_nade_bacta',
+                    'arccw_k_nade_bacta',
                     'fort_datapad',
                     'defuser_bomb',
                     'weapon_stunstick',
                     'weapon_cuff_elastic',
-                    'medic_medkit',
-                    'medic_blood',
-                    'medic_dosimetr',
-                    'medic_ecg_temp',
-                    'medic_exam',
-                    'medic_nerv_maleol',
-                    'medic_ophtalmoscope',
-                    'medic_otoscope',
-                    'medic_pulseoxymetr',
-                    'medic_expresstest_flu',
-                    'medic_scapula',
-                    'medic_shethoscope',
-                    'medic_therm',
-                    'medic_tonometr'
                 },
                 default = {
                     'arc9_k_dc17_stun',
@@ -8687,39 +8682,25 @@ TEAM_ARCNULLRP = NextRP.createJob('Боец ARC Null', {
         ['Мерил'] = {
             id = 'Mereel',
             model = {
-                'models/player/gary/starwars/arc/alpha_mereel.mdl',
+                'models/wf/nulled/mereel.mdl',
+                'models/kylejwest/synergyroleplay/sr3dnullmereelmando/sr3dnullmereelmando.mdl',
             },
             weapon = {
                 ammunition = {
-                    'arc9_k_westarm5',
-                    'arc9_k_dc15le',
-                    'arc9_k_dp24c',
-                    'arc9_k_launcher_rps6_republic',
-                    'arc9_k_nade_thermal',
-                    'arc9_k_nade_sonar',
-                    'arc9_k_z6',
+                    'arccw_cgi_k_westarm5',
+                    'arccw_k_cgi_westarm5_sniper',
+                    'arccw_k_launcher_rps6',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_sonar',
+                    'arccw_cgi_k_z6adv',
                     'jet_mk5',
                     'weapon_bactainjector',
                     'weapon_defibrillator',
-                    'arc9_k_nade_bacta',
+                    'arccw_k_nade_bacta',
                     'fort_datapad',
                     'defuser_bomb',
                     'weapon_stunstick',
                     'weapon_cuff_elastic',
-                    'medic_medkit',
-                    'medic_blood',
-                    'medic_dosimetr',
-                    'medic_ecg_temp',
-                    'medic_exam',
-                    'medic_nerv_maleol',
-                    'medic_ophtalmoscope',
-                    'medic_otoscope',
-                    'medic_pulseoxymetr',
-                    'medic_expresstest_flu',
-                    'medic_scapula',
-                    'medic_shethoscope',
-                    'medic_therm',
-                    'medic_tonometr'
                 },
                 default = {
                     'arc9_k_dc17_stun',
@@ -8734,26 +8715,25 @@ TEAM_ARCNULLRP = NextRP.createJob('Боец ARC Null', {
         ['Аден'] = {
             id = 'Aden',
             model = {
-                'models/player/gary/starwars/arc/alpha_aden.mdl',
+                'models/wf/nulled/aden.mdl',
+                'models/kylejwest/synergyroleplay/sr3dnulladenmando/sr3dnulladenmando.mdl',
             },
             weapon = {
                 ammunition = {
-                    'arc9_k_westarm5',
-                    'arc9_k_dc15le',
-                    'arc9_k_dp24c',
-                    'arc9_k_launcher_rps6_republic',
-                    'arc9_k_nade_thermal',
-                    'arc9_k_nade_sonar',
-                    'arc9_k_z6',
+                    'arccw_cgi_k_westarm5',
+                    'arccw_k_cgi_westarm5_sniper',
+                    'arccw_k_launcher_rps6',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_sonar',
+                    'arccw_cgi_k_z6adv',
                     'jet_mk5',
                     'weapon_bactainjector',
                     'weapon_defibrillator',
-                    'arc9_k_nade_bacta',
+                    'arccw_k_nade_bacta',
                     'fort_datapad',
                     'defuser_bomb',
                     'weapon_stunstick',
                     'weapon_cuff_elastic',
-                    'medic_medkit',
                 },
                 default = {
                     'arc9_k_dc17_stun', 
@@ -8768,26 +8748,25 @@ TEAM_ARCNULLRP = NextRP.createJob('Боец ARC Null', {
         ['Ордо'] = {
             id = 'Ordo',
             model = {
-                'models/player/gary/starwars/arc/alpha_ordo.mdl',
+                'models/wf/nulled/ordo.mdl',
+                'models/kylejwest/synergyroleplay/sr3dnullordomando/sr3dnullordomando.mdl',
             },
             weapon = {
                 ammunition = {
-                    'arc9_k_westarm5',
-                    'arc9_k_dc15le',
-                    'arc9_k_dp24c',
-                    'arc9_k_launcher_rps6_republic',
-                    'arc9_k_nade_thermal',
-                    'arc9_k_nade_sonar',
-                    'arc9_k_z6',
+                    'arccw_cgi_k_westarm5',
+                    'arccw_k_cgi_westarm5_sniper',
+                    'arccw_k_launcher_rps6',
+                    'arccw_k_nade_thermal',
+                    'arccw_k_nade_sonar',
+                    'arccw_cgi_k_z6adv',
                     'jet_mk5',
                     'weapon_bactainjector',
                     'weapon_defibrillator',
-                    'arc9_k_nade_bacta',
+                    'arccw_k_nade_bacta',
                     'fort_datapad',
                     'defuser_bomb',
                     'weapon_stunstick',
                     'weapon_cuff_elastic',
-                    'medic_medkit',
                 },
                 default = {
                     'arc9_k_dc17_stun', 
@@ -9149,11 +9128,11 @@ TEAM_SENGRD = NextRP.createJob('Гвардеец Талмирона', {
             ar = 50, -- Армор
             weapon = { -- Оружие
                 default = {
-                    'arccw_k_cgi_westar35p',
-                    'arccw_cgi_k_dc17_stun',
                     'weapon_lscs_mandostaff',
                 }, -- При спавне
                 ammunition = {
+                    'arccw_k_cgi_westar35p',
+                    'arccw_cgi_k_dc17_stun',
                     'arccw_cgi_k_dc15s_stun',
                     'arccw_k_cgi_westar35c',
                     'arccw_k_cgi_westar35s',
@@ -11073,6 +11052,50 @@ TEAM_JEDIASO = NextRP.createJob('Джедай Асока Тано', {
             -- Форматирование
             -- natoCode = 'OR-1',
             fullRank = 'Асока Тано',
+            speed = {500, 500}, -- Значения скорости: {walkSpeed, runSpeed}
+            -- Вайтлист
+            whitelist = false -- Может ли выдавать эту профу
+        },
+    },
+    flags = {
+    },
+
+    -- ТИПы и КОНТРОЛы
+    type = TYPE_GAR, -- ТИП, могут быть TYPE_USA, TYPE_RUSSIA, TYPE_TERROR, TYPE_OTHER, TYPE_ADMIN, TYPE_RPROLE   control = CONTROL_NATO
+    control = CONTROL_GAR, -- КОНТРОЛ, можеть быть CONTROL_NATO, CONTROL_TERRORISTS, CONTROL_HEADHUNTERS, CONTROL_NONE
+    -- Стартовая
+    start = true,
+    walkspead = 100,
+    runspead = 250,
+    -- Категория
+    category = 'Джедаи'
+})
+
+TEAM_JEDIKANDO = NextRP.createJob('Джедай Vol Kando', {
+    -- НЕОБХОДИМЫЕ НАСТРОЙКИ
+    id = 'jedikando', -- УНИКАЛЬНЫЙ ID ПРОФЫ, без него вся система персонажей идёт нахуй
+    -- Модель(и)
+    model = {'models/swcw/player/swcw/jedi_human_male.mdl'},
+    color = Color(127, 143, 166),
+    -- Звания
+    default_rank = 'Knight',
+    ranks = {
+        ['Knight'] = {
+            -- Порядок сортировки, снизу вверх
+            sortOrder = 1,
+            -- Основные настройки
+            model = { -- Модели
+                'models/swcw/player/swcw/jedi_human_male.mdl',
+            },
+            hp = 1200, -- ХП
+            ar = 50, -- Армор
+            weapon = { -- Оружие
+                default = {'weapon_lscs'}, -- При спавне
+                ammunition = {} -- В оружейке
+            },
+            -- Форматирование
+            -- natoCode = 'OR-1',
+            fullRank = 'Vol Kando',
             speed = {500, 500}, -- Значения скорости: {walkSpeed, runSpeed}
             -- Вайтлист
             whitelist = false -- Может ли выдавать эту профу

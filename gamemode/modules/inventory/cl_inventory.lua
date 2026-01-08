@@ -245,11 +245,11 @@ function NextRP.Inventory:CreateEquipmentSection(parent, slotType, slotConfig)
     section.SlotType = slotType
     
     local slotNames = {
-        primary = "Основное оружие",
-        secondary = "Второстепенное",
-        heavy = "Тяжёлое снаряжение",
-        special = "Специальное",
-        medical = "Медицинское"
+        primary = "Основное оружие (Primary)",
+        secondary = "Второстепенное оружие (Secondary)",
+        heavy = "Тяжёлое оружие (Heavy)",
+        special = "Специальное снаряжение (Special)",
+        medical = "Медицинское снаряжение (Medical)"
     }
     
     section.Paint = function(pnl, w, h)
@@ -279,6 +279,10 @@ function NextRP.Inventory:CreateEquipmentSection(parent, slotType, slotConfig)
             
             local bgColor = isLocked and config.Colors.Locked or config.Colors.Empty
             
+            -- Проверяем есть ли экипированный предмет
+            local equip = self.LocalData.equipment[slotType]
+            local item = equip and (equip[i] or equip[tostring(i)])
+            
             if pnl:IsHovered() and not isLocked then
                 bgColor = config.Colors.Hover
             end
@@ -287,54 +291,44 @@ function NextRP.Inventory:CreateEquipmentSection(parent, slotType, slotConfig)
             
             if isLocked then
                 -- Иконка замка и цена
-                draw.SimpleText("🔒", "PawsUI.Text.Normal", w/2, h/2 - 10, theme.Text, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-                draw.SimpleText(slotConfig.costPerSlot .. " кр.", "PawsUI.Text.Small", w/2, h/2 + 10, theme.Gold or Color(255, 215, 0), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-            else
-                -- Проверяем есть ли предмет
-                local equip = self.LocalData.equipment[slotType]
-                local item = equip and (equip[i] or equip[tostring(i)])
-                
-                if item then
-                    local itemData = self:GetItemData(item.itemID)
-                    if itemData then
-                        -- Рисуем иконку предмета
-                        if itemData.icon then
-                            local mat = Material(itemData.icon)
-                            surface.SetDrawColor(255, 255, 255)
-                            surface.SetMaterial(mat)
-                            surface.DrawTexturedRect(10, 10, w - 20, h - 20)
-                        end
-                        
-                        if item.amount and item.amount > 1 then
-                            draw.SimpleText("x" .. item.amount, "PawsUI.Text.Small", w - 5, h - 5, color_white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
-                        end
+                draw.SimpleText("+", "PawsUI.Text.Normal", w/2, h/2 - 10, theme.Text, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+                draw.SimpleText(slotConfig.costPerSlot .. " кр.", "PawsUI.Text.Small", w/2, h/2 + 10, theme.Text, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            elseif item and item.itemID then
+                -- Рисуем экипированный предмет
+                local itemData = self:GetItemData(item.itemID)
+                if itemData then
+                    -- Фон с цветом редкости
+                    local rarityColor = self:GetRarityColor(itemData.rarity)
+                    draw.RoundedBox(4, 2, 2, w - 4, h - 4, ColorAlpha(rarityColor, 100))
+                    
+                    -- Иконка
+                    if itemData.icon then
+                        local iconSize = math.min(w, h) - 15
+                        local mat = Material(itemData.icon)
+                        surface.SetDrawColor(255, 255, 255)
+                        surface.SetMaterial(mat)
+                        surface.DrawTexturedRect(w/2 - iconSize/2, h/2 - iconSize/2, iconSize, iconSize)
                     end
-                else
-                    -- Пустой слот
-                    draw.SimpleText(tostring(i), "PawsUI.Text.Normal", w/2, h/2, Color(100, 100, 100), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+                    
+                    -- Рамка редкости
+                    surface.SetDrawColor(rarityColor)
+                    surface.DrawOutlinedRect(2, 2, w - 4, h - 4, 2)
                 end
             end
             
-            surface.SetDrawColor(60, 60, 60, 255)
-            surface.DrawOutlinedRect(0, 0, w, h)
+            -- Обводка слота (для всех разблокированных слотов)
+            if not isLocked then
+                surface.SetDrawColor(80, 80, 80, 255)
+                surface.DrawOutlinedRect(0, 0, w, h, 1)
+            end
         end
         
         slot.DoClick = function(pnl)
             local unlocked = self:GetUnlockedSlotCount(slotType)
-            
             if i > unlocked then
-                -- Разблокировка слота за деньги
-                local money = LocalPlayer():GetNVar('nrp_money') or 0
-                Derma_Query(
-                    "Разблокировать слот за " .. slotConfig.costPerSlot .. " кредитов?\n\nУ вас: " .. money .. " кредитов",
-                    "Разблокировка слота",
-                    "Да", function()
-                        netstream.Start("NextRP::InventoryUnlockSlot", slotType)
-                    end,
-                    "Нет", function() end
-                )
+                -- Покупка слота
+                netstream.Start("NextRP::InventoryUnlockSlot", slotType)
             end
-            -- Если слот разблокирован и пустой - ничего не делаем
         end
         
         slot.DoRightClick = function(pnl)
@@ -342,12 +336,34 @@ function NextRP.Inventory:CreateEquipmentSection(parent, slotType, slotConfig)
             if i > unlocked then return end
             
             local equip = self.LocalData.equipment[slotType]
-            -- Проверяем по числу (i), а если нет - по строке
             local item = equip and (equip[i] or equip[tostring(i)]) 
             
             if item then
                 self:OnEquipmentSlotRightClick(pnl)
             end
+        end
+        
+        -- НОВОЕ: Тултип для экипированного оружия
+        slot.OnCursorEntered = function(pnl)
+            local unlocked = self:GetUnlockedSlotCount(slotType)
+            if i > unlocked then return end
+            
+            local equip = self.LocalData.equipment[slotType]
+            local item = equip and (equip[i] or equip[tostring(i)])
+            
+            if item and item.itemID then
+                local itemData = self:GetItemData(item.itemID)
+                if itemData then
+                    -- Создаём данные для ShowItemTooltip
+                    pnl.ItemData = itemData
+                    pnl.Item = item
+                    self:ShowItemTooltip(pnl)
+                end
+            end
+        end
+        
+        slot.OnCursorExited = function(pnl)
+            self:HideItemTooltip()
         end
         
         slotsPanel.Slots[i] = slot
@@ -431,6 +447,13 @@ function NextRP.Inventory:DrawItems(grid, storageData, gridType)
                 bgColor = ColorAlpha(self:GetRarityColor(itemData.rarity), 180)
             end
             
+            -- Подсветка при перетаскивании одинакового стакаемого предмета
+            if self.DraggedItem and self.DraggedItem.itemID == item.itemID and itemData.stackable then
+                if self.DraggedItem.uniqueID ~= uniqueID then
+                    bgColor = Color(100, 255, 100, 150) -- Зелёная подсветка для возможного объединения
+                end
+            end
+            
             draw.RoundedBox(4, 2, 2, w - 4, h - 4, bgColor)
             
             -- Иконка
@@ -452,9 +475,15 @@ function NextRP.Inventory:DrawItems(grid, storageData, gridType)
             surface.DrawOutlinedRect(2, 2, w - 4, h - 4, 2)
         end
         
+        -- ОБНОВЛЕНО: Обработка Ctrl+клик
         itemPanel.OnMousePressed = function(pnl, mouseCode)
             if mouseCode == MOUSE_LEFT then
-                self:StartDrag(pnl)
+                -- Проверяем зажат ли Ctrl для быстрого переноса
+                if input.IsKeyDown(KEY_LCONTROL) or input.IsKeyDown(KEY_RCONTROL) then
+                    self:QuickTransferToStorage(pnl)
+                else
+                    self:StartDrag(pnl)
+                end
             elseif mouseCode == MOUSE_RIGHT then
                 self:ShowItemMenu(pnl)
             end
@@ -468,6 +497,26 @@ function NextRP.Inventory:DrawItems(grid, storageData, gridType)
             self:HideItemTooltip()
         end
     end
+end
+
+function NextRP.Inventory:QuickTransferToStorage(itemPanel)
+    if not itemPanel or not itemPanel.UniqueID then return end
+    
+    local fromStorage = itemPanel.GridType == "storage"
+    local toStorage = not fromStorage
+    
+    -- Проверяем открыто ли хранилище
+    if not self.StorageMode and toStorage then
+        -- Хранилище не открыто, переносить некуда
+        return
+    end
+    
+    -- Отправляем запрос на перенос
+    netstream.Start("NextRP::InventoryQuickTransfer", {
+        uniqueID = itemPanel.UniqueID,
+        fromStorage = fromStorage,
+        toStorage = toStorage
+    })
 end
 
 -- ============================================================================
@@ -551,19 +600,41 @@ function NextRP.Inventory:EndDrag()
             local gw, gh = grid:GetSize()
             
             if x >= gx and x <= gx + gw and y >= gy and y <= gy + gh then
-                -- Определяем ячейку
-                local cellX = math.floor((x - gx) / self.Config.CellSize) + 1
-                local cellY = math.floor((y - gy) / self.Config.CellSize) + 1
+                -- Проверяем, не бросили ли на другой предмет для объединения
+                local targetPanel = self:FindItemPanelUnderCursor(grid, x, y)
                 
-                netstream.Start("NextRP::InventoryMoveItem", {
-                    uniqueID = self.DraggedItem.uniqueID,
-                    newX = cellX,
-                    newY = cellY,
-                    fromStorage = self.DraggedItem.fromStorage,
-                    toStorage = grid.GridType == "storage"
-                })
+                if targetPanel and targetPanel.UniqueID ~= self.DraggedItem.uniqueID then
+                    local targetItemData = self:GetItemData(targetPanel.Item.itemID)
+                    local sourceItemData = self:GetItemData(self.DraggedItem.itemID)
+                    
+                    -- Проверяем можно ли объединить
+                    if targetPanel.Item.itemID == self.DraggedItem.itemID and sourceItemData and sourceItemData.stackable then
+                        -- Объединяем стаки
+                        netstream.Start("NextRP::InventoryMergeStacks", {
+                            sourceUniqueID = self.DraggedItem.uniqueID,
+                            targetUniqueID = targetPanel.UniqueID,
+                            fromStorage = self.DraggedItem.fromStorage,
+                            toStorage = grid.GridType == "storage"
+                        })
+                        dropped = true
+                        break
+                    end
+                end
                 
-                dropped = true
+                -- Обычное перемещение
+                if not dropped then
+                    local cellX = math.floor((x - gx) / self.Config.CellSize) + 1
+                    local cellY = math.floor((y - gy) / self.Config.CellSize) + 1
+                    
+                    netstream.Start("NextRP::InventoryMoveItem", {
+                        uniqueID = self.DraggedItem.uniqueID,
+                        newX = cellX,
+                        newY = cellY,
+                        fromStorage = self.DraggedItem.fromStorage,
+                        toStorage = grid.GridType == "storage"
+                    })
+                    dropped = true
+                end
                 break
             end
         end
@@ -599,6 +670,23 @@ function NextRP.Inventory:EndDrag()
         end
     end
     
+    -- Проверяем сетку ящика
+    if not dropped and IsValid(self.TempCrateUI) and IsValid(self.TempCrateUI.CrateGrid) then
+        local crateGrid = self.TempCrateUI.CrateGrid
+        local gx, gy = crateGrid:LocalToScreen(0, 0)
+        local gw, gh = crateGrid:GetSize()
+        
+        if x >= gx and x <= gx + gw and y >= gy and y <= gy + gh then
+            -- Положить предмет в ящик
+            netstream.Start("NextRP::PutTempCrateItem", {
+                entIndex = self.TempCrateUI.EntIndex,
+                uniqueID = self.DraggedItem.uniqueID,
+                fromStorage = self.DraggedItem.fromStorage
+            })
+            dropped = true
+        end
+    end
+    
     -- Если бросили за пределы окна - выбрасываем
     if not dropped and IsValid(self.UI) then
         local ux, uy = self.UI:LocalToScreen(0, 0)
@@ -614,6 +702,23 @@ function NextRP.Inventory:EndDrag()
     
     self.DraggedItem = nil
     hook.Remove("Think", "NextRP::InventoryDrag")
+end
+
+function NextRP.Inventory:FindItemPanelUnderCursor(grid, mouseX, mouseY)
+    if not IsValid(grid) then return nil end
+    
+    for _, child in pairs(grid:GetChildren()) do
+        if child.IsItemPanel and IsValid(child) then
+            local px, py = child:LocalToScreen(0, 0)
+            local pw, ph = child:GetSize()
+            
+            if mouseX >= px and mouseX <= px + pw and mouseY >= py and mouseY <= py + ph then
+                return child
+            end
+        end
+    end
+    
+    return nil
 end
 
 -- ============================================================================
@@ -636,23 +741,19 @@ function NextRP.Inventory:ShowItemMenu(itemPanel)
         end):SetIcon("icon16/accept.png")
     end
     
-    if itemData.slotType then
-        menu:AddOption("Экипировать", function()
-            -- Находим свободный слот
-            local unlocked = self:GetUnlockedSlotCount(itemData.slotType)
-            for i = 1, unlocked do
-                local equip = self.LocalData.equipment[itemData.slotType]
-                if not equip or not equip[tostring(i)] then
-                    netstream.Start("NextRP::InventoryEquipItem", {
-                        uniqueID = itemPanel.UniqueID,
-                        slotType = itemData.slotType,
-                        slotIndex = i,
-                        fromStorage = itemPanel.GridType == "storage"
-                    })
-                    break
-                end
-            end
-        end):SetIcon("icon16/shield.png")
+    -- Быстрый перенос в хранилище
+    if self.StorageMode then
+        local fromStorage = itemPanel.GridType == "storage"
+        menu:AddOption(fromStorage and "Перенести в инвентарь" or "Перенести в хранилище", function()
+            self:QuickTransferToStorage(itemPanel)
+        end):SetIcon("icon16/arrow_switch.png")
+    end
+    
+    -- Разделить стак
+    if item.amount and item.amount > 1 and itemData.stackable then
+        menu:AddOption("Разделить стак", function()
+            self:OpenSplitStackDialog(itemPanel)
+        end):SetIcon("icon16/arrow_divide.png")
     end
     
     if itemData.canDrop then
@@ -670,6 +771,62 @@ function NextRP.Inventory:ShowItemMenu(itemPanel)
     
     menu:Open()
 end
+
+
+function NextRP.Inventory:OpenSplitStackDialog(itemPanel)
+    if not itemPanel or not itemPanel.Item then return end
+    
+    local item = itemPanel.Item
+    local maxAmount = item.amount or 1
+    
+    if maxAmount <= 1 then return end
+    
+    local theme = NextRP.Style.Theme
+    
+    local frame = vgui.Create("PawsUI.Frame")
+    frame:SetTitle("Разделить стак")
+    frame:SetSize(300, 200)
+    frame:Center()
+    frame:MakePopup()
+    frame:ShowSettingsButton(false)
+    
+    local label = vgui.Create("DLabel", frame)
+    label:Dock(TOP)
+    label:SetTall(25)
+    label:DockMargin(10, 10, 10, 5)
+    label:SetText("Количество для отделения (1-" .. (maxAmount - 1) .. "):")
+    label:SetFont("PawsUI.Text.Normal")
+    label:SetTextColor(theme.Text)
+    
+    local slider = vgui.Create("DNumSlider", frame)
+    slider:Dock(TOP)
+    slider:SetTall(40)
+    slider:DockMargin(10, 5, 10, 5)
+    slider:SetText("")
+    slider:SetMin(1)
+    slider:SetMax(maxAmount - 1)
+    slider:SetValue(math.floor(maxAmount / 2))
+    slider:SetDecimals(0)
+    
+    local confirmBtn = vgui.Create("PawsUI.Button", frame)
+    confirmBtn:SetLabel("Разделить")
+    confirmBtn:Dock(BOTTOM)
+    confirmBtn:SetTall(35)
+    confirmBtn:DockMargin(10, 5, 10, 10)
+    
+    confirmBtn.DoClick = function()
+        local amount = math.floor(slider:GetValue())
+        if amount > 0 and amount < maxAmount then
+            netstream.Start("NextRP::InventorySplitStack", {
+                uniqueID = itemPanel.UniqueID,
+                amount = amount,
+                fromStorage = itemPanel.GridType == "storage"
+            })
+        end
+        frame:Remove()
+    end
+end
+
 
 function NextRP.Inventory:OnEquipmentSlotRightClick(slot)
     if not slot then return end
@@ -727,9 +884,10 @@ function NextRP.Inventory:ShowItemTooltip(itemPanel)
         
         -- Размер
         draw.SimpleText("Размер: " .. (itemData.width or 1) .. "x" .. (itemData.height or 1), "PawsUI.Text.Small", 10, 75, theme.Text)
+
+        -- Слот
+        draw.SimpleText("Слот: " .. (itemData.slotType or "нет слота."), "PawsUI.Text.Small", 10, 95, theme.Text)
         
-        -- Вес
-        draw.SimpleText("Вес: " .. (itemData.weight or 0) .. " кг", "PawsUI.Text.Small", 10, 95, theme.Text)
         
         surface.SetDrawColor(self:GetRarityColor(itemData.rarity))
         surface.DrawOutlinedRect(0, 0, w, h, 2)
@@ -807,12 +965,25 @@ function NextRP.Inventory:OpenDeathBagUI(entIndex, items)
     
     self.DeathBagUI = vgui.Create("PawsUI.Frame")
     self.DeathBagUI:SetTitle("Сумка")
-    self.DeathBagUI:SetSize(400, 500)
+    self.DeathBagUI:SetSize(400, 550)
     self.DeathBagUI:Center()
     self.DeathBagUI:MakePopup()
     self.DeathBagUI:ShowSettingsButton(false)
     self.DeathBagUI.EntIndex = entIndex
     self.DeathBagUI.Items = items
+    
+    -- Кнопка "Взять всё"
+    local takeAllBtn = vgui.Create("PawsUI.Button", self.DeathBagUI)
+    takeAllBtn:SetLabel("Взять всё")
+    takeAllBtn:Dock(BOTTOM)
+    takeAllBtn:SetTall(40)
+    takeAllBtn:DockMargin(5, 5, 5, 5)
+    
+    takeAllBtn.DoClick = function()
+        netstream.Start("NextRP::InventoryTakeAllFromBag", {
+            entIndex = self.DeathBagUI.EntIndex
+        })
+    end
     
     local scroll = vgui.Create("PawsUI.ScrollPanel", self.DeathBagUI)
     scroll:Dock(FILL)

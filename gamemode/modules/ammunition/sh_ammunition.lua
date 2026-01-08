@@ -1,20 +1,26 @@
 NextRP.Ammunition = NextRP.Ammunition or {}
 
--- Настройка глобального снабжения
 NextRP.Ammunition.Config = {
-    MaxSupply = 10000,      -- Максимум очков снабжения
-    RegenAmount = 5,        -- Сколько очков восстанавливается
-    RegenInterval = 60,     -- Интервал восстановления (секунды)
-    
-    -- Список предметов в ящике
-    -- itemID: ID предмета из sh_inventory.lua
-    -- price: Стоимость в очках снабжения
-    Items = {
-        { itemID = "weapon_dc15a", price = 100 },
-        { itemID = "weapon_dc15s", price = 80 },
-        { itemID = "weapon_dc17",  price = 50 },
-        { itemID = "medkit",       price = 25 },
-        { itemID = "ammo_rifle",   price = 10 },
-        { itemID = "grenade_frag", price = 150 },
-    }
+    MaxSupply = 10000,       -- Максимум очков снабжения на сервере
+    RegenAmount = 50,        -- Сколько восстанавливается
+    RegenInterval = 300,      -- Раз в сколько секунд (1 минута)
 }
+
+-- Вспомогательная функция для получения таблицы профессии игрока
+function NextRP.Ammunition:GetJobData(ply)
+    if not IsValid(ply) then return {} end
+    
+    local teamID = ply:Team()
+    
+    -- Пытаемся получить данные профессии из NextRP.Jobs
+    if NextRP.Jobs and NextRP.Jobs[teamID] then
+        return NextRP.Jobs[teamID]
+    end
+    
+    -- На всякий случай, если структура другая, проверяем стандартный getJobTable
+    if ply.getJobTable then
+        return ply:getJobTable()
+    end
+
+    return {}
+end

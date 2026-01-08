@@ -1,309 +1,513 @@
-local function calcweight(pPlayer)
-    local picked = pPlayer:GetNWInt('picked') or 0
-    
-    -- Если у игрока есть улучшенные скорости от талантов, используем их
-    if pPlayer.TalentEnhancedRunSpeed and pPlayer.TalentEnhancedWalkSpeed then
-        local enhancedRunSpeed = pPlayer.TalentEnhancedRunSpeed
-        local enhancedWalkSpeed = pPlayer.TalentEnhancedWalkSpeed
-        local slowSpeed = enhancedWalkSpeed - 50
-        
-        if picked >= 100 then
-            pPlayer:SetWalkSpeed(enhancedWalkSpeed * 0.65)
-            pPlayer:SetRunSpeed(enhancedRunSpeed * 0.65)
-            pPlayer:SetSlowWalkSpeed(slowSpeed * 0.65)
-        elseif picked >= 50 then
-            pPlayer:SetWalkSpeed(enhancedWalkSpeed * 0.85)
-            pPlayer:SetRunSpeed(enhancedRunSpeed * 0.85)
-            pPlayer:SetSlowWalkSpeed(slowSpeed * 0.85)
-        elseif picked >= 25 then
-            pPlayer:SetWalkSpeed(enhancedWalkSpeed * 0.95)
-            pPlayer:SetRunSpeed(enhancedRunSpeed * 0.95)
-            pPlayer:SetSlowWalkSpeed(slowSpeed * 0.95)
-        else
-            pPlayer:SetWalkSpeed(enhancedWalkSpeed)
-            pPlayer:SetRunSpeed(enhancedRunSpeed)
-            pPlayer:SetSlowWalkSpeed(slowSpeed)
-        end
-    else
-        -- Стандартная логика без талантов
-        local runspeed = pPlayer:getJobTable().runspead or 250
-        local walkspeed = pPlayer:getJobTable().walkspead or 100
-        local slowspeed = walkspeed - 50
-        
-        if picked >= 100 then
-            pPlayer:SetWalkSpeed(walkspeed * 0.65)
-            pPlayer:SetRunSpeed(runspeed * 0.65)
-            pPlayer:SetSlowWalkSpeed(slowspeed * 0.65)
-        elseif picked >= 50 then
-            pPlayer:SetWalkSpeed(walkspeed * 0.85)
-            pPlayer:SetRunSpeed(runspeed * 0.85)
-            pPlayer:SetSlowWalkSpeed(slowspeed * 0.85)
-        elseif picked >= 25 then
-            pPlayer:SetWalkSpeed(walkspeed * 0.95)
-            pPlayer:SetRunSpeed(runspeed * 0.95)
-            pPlayer:SetSlowWalkSpeed(slowspeed * 0.95)
-        else
-            pPlayer:SetWalkSpeed(walkspeed)
-            pPlayer:SetRunSpeed(runspeed)
-            pPlayer:SetSlowWalkSpeed(slowspeed)
-        end
-    end
+-- ============================================================================
+-- sv_ammunition.lua - Система снабжения с сохранением в БД для каждой карты
+-- ============================================================================
 
-    if ServerMedicMod and ServerMedicMod.EnableLegsTraum and pPlayer:GetNWInt("MedicineModtraumalegs") != 0 then
-        -- Если есть травма ног, применяем дополнительное замедление на 70% (делим на 3)
-        local currentWalkSpeed = pPlayer:GetWalkSpeed()
-        local currentRunSpeed = pPlayer:GetRunSpeed()
-        local currentSlowSpeed = pPlayer:GetSlowWalkSpeed()
+local cfg = NextRP.Ammunition.Config
+
+-- Локальная переменная для кэширования текущих очков (избегаем постоянных запросов к БД)
+local cachedSupplyPoints = nil
+local currentMap = game.GetMap()
+
+-- ============================================================================
+-- ИНИЦИАЛИЗАЦИЯ ТАБЛИЦЫ В БД
+-- ============================================================================
+
+hook.Add("DatabaseInitialized", "NextRP::Ammunition_DB_Init", function()
+    MySQLite.query([[
+        CREATE TABLE IF NOT EXISTS nextrp_supply_points (
+            map_name VARCHAR(128) NOT NULL PRIMARY KEY,
+            supply_points INT DEFAULT 10000,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    ]], function()
+        MsgC(Color(0, 255, 0), "[NextRP Ammunition] Таблица очков снабжения создана!\n")
+        -- После создания таблицы загружаем данные
+        NextRP.Ammunition:LoadSupplyPoints()
+    end)
+end)
+
+-- ============================================================================
+-- ФУНКЦИИ РАБОТЫ С ОЧКАМИ СНАБЖЕНИЯ
+-- ============================================================================
+
+-- Загрузка очков снабжения из БД
+function NextRP.Ammunition:LoadSupplyPoints(callback)
+    MySQLite.query(string.format(
+        "SELECT supply_points FROM nextrp_supply_points WHERE map_name = %s",
+        MySQLite.SQLStr(currentMap)
+    ), function(result)
+        if result and result[1] then
+            cachedSupplyPoints = tonumber(result[1].supply_points) or cfg.MaxSupply
+            MsgC(Color(0, 255, 100), "[NextRP Ammunition] Загружено " .. cachedSupplyPoints .. " очков снабжения для карты: " .. currentMap .. "\n")
+        else
+            -- Карты нет в БД - создаём запись с максимальным значением (используем INSERT IGNORE чтобы избежать ошибки дубликата)
+            cachedSupplyPoints = cfg.MaxSupply
+            MySQLite.query(string.format(
+                "INSERT IGNORE INTO nextrp_supply_points (map_name, supply_points) VALUES (%s, %d)",
+                MySQLite.SQLStr(currentMap),
+                cfg.MaxSupply
+            ), function()
+                MsgC(Color(0, 255, 100), "[NextRP Ammunition] Создана запись для карты: " .. currentMap .. " с " .. cfg.MaxSupply .. " очками\n")
+            end)
+        end
         
-        pPlayer:SetWalkSpeed(currentWalkSpeed / 3)
-        pPlayer:SetRunSpeed(currentRunSpeed / 3)
-        pPlayer:SetSlowWalkSpeed(currentSlowSpeed / 3)
-    end
+        -- Синхронизируем с клиентами
+        SetGlobalInt("NextRP_SupplyPoints", cachedSupplyPoints)
+        
+        if callback then callback(cachedSupplyPoints) end
+    end)
 end
 
-
-
-netstream.Hook('NextRP::AmmunitionWeps', function(pPlayer, sWep)
-    local picked = pPlayer:GetNWInt('picked')
-    local weight = weapons.Get(sWep).Weight or 5
-    if string.StartsWith(sWep, 'medic') then weight = 0 end
-    local weps = pPlayer.ammunitionweps
-
-    pPlayer.WeaponTimers = pPlayer.WeaponTimers or {}
-    pPlayer.WeaponTimers[sWep] = pPlayer.WeaponTimers[sWep] or CurTime() - 1
-
-    if table.HasValue(weps.ammunition, sWep) or table.HasValue(weps.default, sWep) then
-        if pPlayer:HasWeapon(sWep) then
-            pPlayer:StripWeapon(sWep)
-            pPlayer.WeaponTimers[sWep] = CurTime() + 60
-            pPlayer:SetNWInt('picked', picked - weight)
-        else
-            if picked >= 200 then pPlayer:SendMessage(MESSAGE_TYPE_ERROR, 'Вы не можете нести больше!') end
-            if pPlayer.WeaponTimers[sWep] < CurTime() then
-                pPlayer:Give(sWep)
-                pPlayer:SetNWInt('picked', picked + weight)
-            else
-                pPlayer:SendMessage(MESSAGE_TYPE_ERROR, 'Вам нужно подождать ещё ', Color(71, 141, 255), tostring(math.Round(pPlayer.WeaponTimers[sWep] - CurTime())), color_white, ' секунд, что-бы получить это оружие/экипировку!')
-            end
-        end
-    calcweight(pPlayer)
-    pPlayer:CalcWeight()
-    end
-end)
-
-netstream.Hook('NextRP::AmmunitionGiveAll', function(pPlayer)
-    local weps = pPlayer.ammunitionweps
-    pPlayer.WeaponGiveAll = pPlayer.WeaponGiveAll or CurTime() - 1
-    local kolvo = 0
-
-    if pPlayer.WeaponGiveAll < CurTime() then
-        -- Выдаем оружие из ammunition
-        for r, u in pairs(weps.ammunition) do
-            if !pPlayer:HasWeapon(u) then
-                pPlayer:Give(u)
-                kolvo = kolvo + 1
-                
-                -- Добавляем вес каждого оружия
-                local weight = weapons.Get(u).Weight or 5
-                if string.StartsWith(u, 'medic') then weight = 0 end
-                local currentWeight = pPlayer:GetNWInt('picked') or 0
-                pPlayer:SetNWInt('picked', currentWeight + weight)
-            end
-        end
-
-        -- Выдаем оружие из default
-        for r, u in pairs(weps.default) do
-            if !pPlayer:HasWeapon(u) then
-                pPlayer:Give(u)
-                kolvo = kolvo + 1
-                
-                -- Добавляем вес каждого оружия
-                local weight = weapons.Get(u).Weight or 5
-                if string.StartsWith(u, 'medic') then weight = 0 end
-                local currentWeight = pPlayer:GetNWInt('picked') or 0
-                pPlayer:SetNWInt('picked', currentWeight + weight)
-            end
-        end
-
-        if kolvo > 0 then
-            pPlayer.WeaponGiveAll = CurTime() + 60
-        else
-            pPlayer:SendMessage(MESSAGE_TYPE_ERROR, 'У вас уже всё есть!')
-        end
-    else
-        pPlayer:SendMessage(MESSAGE_TYPE_ERROR, 'Вам нужно подождать ещё ', Color(71, 141, 255), tostring(math.Round(pPlayer.WeaponGiveAll - CurTime())), color_white, ' секунд, что-бы получить всё вооружение!')
-    end
+-- Сохранение очков снабжения в БД
+function NextRP.Ammunition:SaveSupplyPoints(points)
+    if points == nil then points = cachedSupplyPoints end
+    if points == nil then return end
     
-    -- Пересчитываем скорость после изменения веса
-    calcweight(pPlayer)
-    pPlayer:CalcWeight()
-end)
-
-netstream.Hook('NextRP::AmmunitionRemoveAll', function(pPlayer)
-    local weps = pPlayer.ammunitionweps
-    local kolvo = 0
-    
-    pPlayer.WeaponTimers = pPlayer.WeaponTimers or {}
-
-    -- Убираем оружие из ammunition
-    for r, u in pairs(weps.ammunition) do
-        if pPlayer:HasWeapon(u) then
-            pPlayer:StripWeapon(u)
-            pPlayer.WeaponTimers[u] = CurTime() + 60
-            kolvo = kolvo + 1
-            
-            -- Убираем вес каждого оружия
-            local weight = weapons.Get(u).Weight or 5
-            if string.StartsWith(u, 'medic') then weight = 0 end
-            local currentWeight = pPlayer:GetNWInt('picked') or 0
-            pPlayer:SetNWInt('picked', math.max(0, currentWeight - weight))
-        end
-    end
-
-    -- Убираем оружие из default
-    for r, u in pairs(weps.default) do
-        if pPlayer:HasWeapon(u) then
-            pPlayer:StripWeapon(u)
-            pPlayer.WeaponTimers[u] = CurTime() + 60
-            kolvo = kolvo + 1
-            
-            -- Убираем вес каждого оружия
-            local weight = weapons.Get(u).Weight or 5
-            if string.StartsWith(u, 'medic') then weight = 0 end
-            local currentWeight = pPlayer:GetNWInt('picked') or 0
-            pPlayer:SetNWInt('picked', math.max(0, currentWeight - weight))
-        end
-    end
-    
-    -- Пересчитываем скорость после изменения веса
-    calcweight(pPlayer)
-    pPlayer:CalcWeight()
-end)
-netstream.Hook('NextRP::Dispenser', function(pPlayer, type)
-    local tbl = {1,2,3,4,5}
-    local greandetypes = {'grenade', 'arccw_bacta_grenade', 'arccw_flash_grenade', 'arccw_impact_grenade', 'arccw_k_nade_smoke', 'arccw_k_nade_flashbang', 'arccw_k_nade_thermal'}
-
-    if !tbl[type] then return end
-    pPlayer.Dispenser = pPlayer.Dispenser or {}
-    pPlayer.Dispenser[type] = pPlayer.Dispenser[type] or CurTime() - 1
-
-    if type == tbl[1] and pPlayer.Dispenser[type] < CurTime() then
-        pPlayer:GiveAmmo(2000, "ar2", false)
-        pPlayer.Dispenser[type] = CurTime() + 5
-    elseif type == tbl[2] and pPlayer.Dispenser[type] < CurTime() then
-        pPlayer:GiveAmmo(50, "rpg_round", false)
-        pPlayer.Dispenser[type] = CurTime() + 5
-    elseif type == tbl[3] and pPlayer.Dispenser[type] < CurTime() then
-        for _, v in ipairs(greandetypes) do
-            pPlayer:GiveAmmo(5, v, false)
-        end
-        pPlayer.Dispenser[type] = CurTime() + 5
-    elseif type == tbl[4] and pPlayer.Dispenser[type] < CurTime() then
-        if pPlayer:Armor() == pPlayer:GetMaxArmor() then return pPlayer:SendMessage(MESSAGE_TYPE_ERROR, 'У вас и так уже максимум брони!') end
-        pPlayer:SetArmor( pPlayer:Armor() + 50 )
-        if pPlayer:Armor() > pPlayer:GetMaxArmor() then
-            pPlayer:SetArmor( pPlayer:GetMaxArmor() )
-        end
-        pPlayer:EmitSound("npc/roller/code2.wav")
-        pPlayer.Dispenser[type] = CurTime() + 5
-    elseif type == tbl[5] and pPlayer.Dispenser[type] < CurTime() then
-        pPlayer:GiveAmmo(20, "SMG1_Grenade", false)
-        pPlayer.Dispenser[type] = CurTime() + 5
-    else
-        pPlayer:SendMessage(MESSAGE_TYPE_ERROR, 'Вам нужно подождать ещё ', Color(71, 141, 255), tostring(math.Round(pPlayer.Dispenser[type] - CurTime())), color_white, ' секунд, прежде чем взять это!')
-    end
-end)
-
-hook.Add('PlayerDeath', 'NextRP::ResetWepsTimers', function(pPlayer)
-    pPlayer.WeaponTimers = {}
-    pPlayer.Dispenser = {}
-    pPlayer.WeaponGiveAll = CurTime() - 1
-end)
-
---[[
-    Серверная часть модуля Ammunition
-    Адаптировано под Inventory System и Supply Points
-]]
-
-AddCSLuaFile("cl_ammunition.lua")
-AddCSLuaFile("sh_config.lua")
-include("sh_config.lua")
-
--- Инициализация снабжения
-hook.Add("Initialize", "NextRP::InitSupplyPoints", function()
-    SetGlobalInt("NextRP_SupplyPoints", NextRP.Ammunition.Config.MaxSupply)
-end)
-
--- Регенерация снабжения
-timer.Create("NextRP::RegenSupply", NextRP.Ammunition.Config.RegenInterval, 0, function()
-    local current = GetGlobalInt("NextRP_SupplyPoints", 0)
-    local max = NextRP.Ammunition.Config.MaxSupply
-    
-    if current < max then
-        SetGlobalInt("NextRP_SupplyPoints", math.min(current + NextRP.Ammunition.Config.RegenAmount, max))
-    end
-end)
-
--- Функция изменения очков снабжения (для админов или событий)
-function NextRP.Ammunition:AddSupply(amount)
-    local current = GetGlobalInt("NextRP_SupplyPoints", 0)
-    local max = NextRP.Ammunition.Config.MaxSupply
-    SetGlobalInt("NextRP_SupplyPoints", math.Clamp(current + amount, 0, max))
+    MySQLite.query(string.format(
+        "INSERT INTO nextrp_supply_points (map_name, supply_points) VALUES (%s, %d) ON DUPLICATE KEY UPDATE supply_points = %d",
+        MySQLite.SQLStr(currentMap),
+        points,
+        points
+    ))
 end
 
--- Обработчик запроса на получение предмета
-netstream.Hook("NextRP::AmmunitionBuy", function(ply, index)
+-- Получить текущие очки снабжения
+function NextRP.Ammunition:GetSupplyPoints()
+    return cachedSupplyPoints or GetGlobalInt("NextRP_SupplyPoints", cfg.MaxSupply)
+end
+
+-- Установить очки снабжения
+function NextRP.Ammunition:SetSupplyPoints(points, save)
+    points = math.Clamp(points, 0, cfg.MaxSupply)
+    cachedSupplyPoints = points
+    SetGlobalInt("NextRP_SupplyPoints", points)
+    
+    -- По умолчанию сохраняем в БД
+    if save ~= false then
+        self:SaveSupplyPoints(points)
+    end
+    
+    return points
+end
+
+-- Добавить очки снабжения
+function NextRP.Ammunition:AddSupplyPoints(amount, save)
+    local current = self:GetSupplyPoints()
+    return self:SetSupplyPoints(current + amount, save)
+end
+
+-- Потратить очки снабжения
+function NextRP.Ammunition:SpendSupplyPoints(amount, save)
+    local current = self:GetSupplyPoints()
+    if current < amount then return false end
+    self:SetSupplyPoints(current - amount, save)
+    return true
+end
+
+-- ============================================================================
+-- ИНИЦИАЛИЗАЦИЯ ПРИ СТАРТЕ СЕРВЕРА
+-- ============================================================================
+
+hook.Add("Initialize", "NextRP::SupplyInit", function()
+    -- Устанавливаем начальное значение (будет перезаписано после загрузки из БД)
+    SetGlobalInt("NextRP_SupplyPoints", cfg.MaxSupply)
+end)
+
+-- Загрузка после полной инициализации (на случай если DatabaseInitialized не сработал)
+hook.Add("InitPostEntity", "NextRP::SupplyLoadFallback", function()
+    timer.Simple(2, function()
+        if cachedSupplyPoints == nil then
+            MsgC(Color(255, 200, 0), "[NextRP Ammunition] Fallback загрузка очков снабжения...\n")
+            NextRP.Ammunition:LoadSupplyPoints()
+        end
+    end)
+end)
+
+-- ============================================================================
+-- ТАЙМЕР РЕГЕНЕРАЦИИ
+-- ============================================================================
+
+timer.Create("NextRP::SupplyRegen", cfg.RegenInterval, 0, function()
+    local current = NextRP.Ammunition:GetSupplyPoints()
+    if current < cfg.MaxSupply then
+        local newValue = math.min(current + cfg.RegenAmount, cfg.MaxSupply)
+        NextRP.Ammunition:SetSupplyPoints(newValue, true)
+    end
+end)
+
+-- ============================================================================
+-- ПЕРИОДИЧЕСКОЕ СОХРАНЕНИЕ (на случай крашей)
+-- ============================================================================
+
+timer.Create("NextRP::SupplyAutoSave", 300, 0, function() -- Каждые 5 минут
+    if cachedSupplyPoints then
+        NextRP.Ammunition:SaveSupplyPoints()
+        MsgC(Color(100, 200, 100), "[NextRP Ammunition] Автосохранение: " .. cachedSupplyPoints .. " очков\n")
+    end
+end)
+
+-- Сохранение при выключении сервера
+hook.Add("ShutDown", "NextRP::SupplySaveOnShutdown", function()
+    if cachedSupplyPoints then
+        -- Используем синхронный запрос при выключении
+        MySQLite.query(string.format(
+            "UPDATE nextrp_supply_points SET supply_points = %d WHERE map_name = %s",
+            cachedSupplyPoints,
+            MySQLite.SQLStr(currentMap)
+        ))
+        MsgC(Color(255, 200, 0), "[NextRP Ammunition] Сохранено при выключении: " .. cachedSupplyPoints .. " очков\n")
+    end
+end)
+
+-- ============================================================================
+-- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+-- ============================================================================
+
+-- Получение флагов игрока
+local function GetPlyFlags(ply)
+    if not IsValid(ply) then return {} end
+    
+    local flags = ply:GetNVar('nrp_charflags')
+    if flags and istable(flags) then
+        return flags
+    end
+    
+    return {}
+end
+
+-- Получение ранга игрока
+local function GetPlyRank(ply, jobData)
+    if not IsValid(ply) then return "" end
+    
+    local rank = ply:GetNVar('nrp_rankid')
+    if rank and rank ~= "" and rank ~= false then
+        return rank
+    end
+    
+    if jobData and jobData.default_rank then
+        return jobData.default_rank
+    end
+    
+    return ""
+end
+
+-- ============================================================================
+-- ПРОВЕРКА РАЗРЕШЕНИЯ НА ПОЛУЧЕНИЕ ПРЕДМЕТА
+-- ============================================================================
+
+local function CanPlayerGetItem(ply, itemID)
+    local itemData = NextRP.Inventory:GetItemData(itemID)
+    if not itemData or not itemData.weaponClass then return false end
+    
+    local targetWepClass = itemData.weaponClass
+    local jobData = ply:getJobTable()
+    if not jobData then return false end
+    
+    local myRank = GetPlyRank(ply, jobData)
+    local myFlags = GetPlyFlags(ply)
+    
+    local allowed = false
+    local anyFlagReplacesWeapon = false
+    
+    -- Проверяем есть ли флаг с replaceWeapon
+    if jobData.flags and table.Count(myFlags) > 0 then
+        for flagKey, flagActive in pairs(myFlags) do
+            if not flagActive then continue end
+            
+            local flagData = jobData.flags[flagKey]
+            if not flagData then
+                for k, v in pairs(jobData.flags) do
+                    if v.id == flagKey then flagData = v break end
+                end
+            end
+            
+            if flagData and flagData.replaceWeapon then
+                anyFlagReplacesWeapon = true
+                break
+            end
+        end
+    end
+    
+    -- 1. Проверка ранга (только если нет флага с replaceWeapon)
+    if not anyFlagReplacesWeapon then
+        if jobData.ranks and jobData.ranks[myRank] then
+            local rankData = jobData.ranks[myRank]
+            if rankData.weapon and rankData.weapon.ammunition then
+                for _, class in pairs(rankData.weapon.ammunition) do
+                    if class == targetWepClass then 
+                        allowed = true 
+                        break 
+                    end
+                end
+            end
+        end
+    end
+    
+    -- 2. Проверка флагов
+    if jobData.flags and table.Count(myFlags) > 0 then
+        for flagKey, flagActive in pairs(myFlags) do
+            if not flagActive then continue end
+            
+            local flagData = jobData.flags[flagKey]
+            if not flagData then
+                for k, v in pairs(jobData.flags) do
+                    if v.id == flagKey then flagData = v break end
+                end
+            end
+            
+            if flagData and flagData.weapon and flagData.weapon.ammunition then
+                for _, class in pairs(flagData.weapon.ammunition) do
+                    if class == targetWepClass then 
+                        allowed = true 
+                        break 
+                    end
+                end
+            end
+            
+            if allowed then break end
+        end
+    end
+    
+    return allowed
+end
+
+-- ============================================================================
+-- ПОКУПКА ПРЕДМЕТА
+-- ============================================================================
+
+netstream.Hook("NextRP::Ammunition::Buy", function(ply, data)
     if not IsValid(ply) or not ply:Alive() then return end
     
-    -- Проверка дистанции до ближайшего ящика
-    local nearby = false
-    for _, ent in pairs(ents.FindByClass("nextrp_ammunition")) do
-        if ent:GetPos():DistToSqr(ply:GetPos()) < 200 * 200 then
-            nearby = true
-            break
+    -- Проверка дистанции до NPC
+    if data.entIndex then
+        local ent = Entity(data.entIndex)
+        if IsValid(ent) and ent:GetClass() == "nextrp_ammunition" then
+            if ply:GetPos():DistToSqr(ent:GetPos()) > 300*300 then return end
         end
     end
+
+    local itemID = data.itemID
     
-    if not nearby then return end
-    
-    -- Получаем данные о предмете
-    local itemConfig = NextRP.Ammunition.Config.Items[index]
-    if not itemConfig then return end
-    
-    -- Проверяем наличие глобальных очков снабжения
-    local currentSupply = GetGlobalInt("NextRP_SupplyPoints", 0)
-    if currentSupply < itemConfig.price then
-        ply:SendMessage(MESSAGE_TYPE_ERROR, "Недостаточно очков снабжения в системе!")
+    -- Проверка разрешения
+    if not CanPlayerGetItem(ply, itemID) then
+        ply:SendMessage(MESSAGE_TYPE_ERROR, "Этот предмет недоступен для вашего звания/должности.")
         return
     end
     
-    -- Проверяем валидность предмета в инвентаре
-    local itemData = NextRP.Inventory:GetItemData(itemConfig.itemID)
-    if not itemData then
-        ply:SendMessage(MESSAGE_TYPE_ERROR, "Ошибка конфигурации: Предмет не существует")
+    local itemDef = NextRP.Inventory:GetItemData(itemID)
+    if not itemDef then
+        ply:SendMessage(MESSAGE_TYPE_ERROR, "Предмет не найден!")
         return
     end
     
-    -- Пытаемся выдать предмет в инвентарь
-    local success, err = NextRP.Inventory:AddItem(ply, itemConfig.itemID, 1)
+    local price = itemDef.supplyPrice or 0
+    local currentSupply = NextRP.Ammunition:GetSupplyPoints()
+    
+    -- Проверка достаточности очков
+    if currentSupply < price then
+        ply:SendMessage(MESSAGE_TYPE_ERROR, "На базе недостаточно очков снабжения!")
+        return
+    end
+    
+    -- Добавляем предмет в инвентарь
+    local success, err = NextRP.Inventory:AddItem(ply, itemID, 1)
     
     if success then
-        -- Снимаем очки снабжения только при успехе
-        NextRP.Ammunition:AddSupply(-itemConfig.price)
-        
-        ply:SendMessage(MESSAGE_TYPE_SUCCESS, "Вы получили: " .. itemData.name)
+        -- Списываем очки и сохраняем в БД
+        NextRP.Ammunition:SetSupplyPoints(currentSupply - price, true)
+        ply:SendMessage(MESSAGE_TYPE_SUCCESS, "Вы получили: " .. itemDef.name)
         ply:EmitSound("items/ammo_pickup.wav")
     else
-        ply:SendMessage(MESSAGE_TYPE_ERROR, "Ошибка: " .. (err or "Нет места в инвентаре"))
+        ply:SendMessage(MESSAGE_TYPE_ERROR, "Ошибка: " .. (err or "Инвентарь полон"))
     end
 end)
 
--- Админ-команда для управления снабжением
+-- ============================================================================
+-- КОНСОЛЬНЫЕ КОМАНДЫ (АДМИН)
+-- ============================================================================
+
+-- Установить очки снабжения
 concommand.Add("nextrp_setsupply", function(ply, cmd, args)
-    if IsValid(ply) and not ply:IsSuperAdmin() then return end
-    local amount = tonumber(args[1])
-    if amount then
-        SetGlobalInt("NextRP_SupplyPoints", amount)
-        print("Supply points set to " .. amount)
+    if IsValid(ply) and not ply:IsAdmin() then 
+        ply:PrintMessage(HUD_PRINTCONSOLE, "[Supply] У вас нет прав!")
+        return 
+    end
+    
+    local val = tonumber(args[1])
+    if not val then
+        local msg = "[Supply] Использование: nextrp_setsupply <количество>"
+        if IsValid(ply) then ply:PrintMessage(HUD_PRINTCONSOLE, msg) else print(msg) end
+        return
+    end
+    
+    NextRP.Ammunition:SetSupplyPoints(val, true)
+    
+    local msg = "[Supply] Установлено " .. val .. " очков снабжения для карты " .. currentMap
+    if IsValid(ply) then 
+        ply:PrintMessage(HUD_PRINTCONSOLE, msg) 
+    end
+    MsgC(Color(0, 255, 0), msg .. "\n")
+end)
+
+-- Добавить очки снабжения
+concommand.Add("nextrp_addsupply", function(ply, cmd, args)
+    if IsValid(ply) and not ply:IsAdmin() then 
+        ply:PrintMessage(HUD_PRINTCONSOLE, "[Supply] У вас нет прав!")
+        return 
+    end
+    
+    local val = tonumber(args[1])
+    if not val then
+        local msg = "[Supply] Использование: nextrp_addsupply <количество>"
+        if IsValid(ply) then ply:PrintMessage(HUD_PRINTCONSOLE, msg) else print(msg) end
+        return
+    end
+    
+    local newVal = NextRP.Ammunition:AddSupplyPoints(val, true)
+    
+    local msg = "[Supply] Добавлено " .. val .. " очков. Текущее значение: " .. newVal
+    if IsValid(ply) then 
+        ply:PrintMessage(HUD_PRINTCONSOLE, msg) 
+    end
+    MsgC(Color(0, 255, 0), msg .. "\n")
+end)
+
+-- Показать текущие очки
+concommand.Add("nextrp_getsupply", function(ply, cmd, args)
+    local current = NextRP.Ammunition:GetSupplyPoints()
+    local msg = "[Supply] Карта: " .. currentMap .. " | Очки: " .. current .. "/" .. cfg.MaxSupply
+    
+    if IsValid(ply) then 
+        ply:PrintMessage(HUD_PRINTCONSOLE, msg) 
+    else 
+        print(msg) 
     end
 end)
+
+-- Показать очки всех карт
+concommand.Add("nextrp_allsupply", function(ply, cmd, args)
+    if IsValid(ply) and not ply:IsAdmin() then 
+        ply:PrintMessage(HUD_PRINTCONSOLE, "[Supply] У вас нет прав!")
+        return 
+    end
+    
+    MySQLite.query("SELECT * FROM nextrp_supply_points ORDER BY map_name", function(result)
+        local msg = "\n[Supply] Очки снабжения по картам:\n" .. string.rep("-", 50) .. "\n"
+        
+        if result then
+            for _, row in ipairs(result) do
+                local marker = (row.map_name == currentMap) and " <-- ТЕКУЩАЯ" or ""
+                msg = msg .. string.format("%-30s %d/%d%s\n", row.map_name, row.supply_points, cfg.MaxSupply, marker)
+            end
+        else
+            msg = msg .. "Нет данных\n"
+        end
+        
+        msg = msg .. string.rep("-", 50)
+        
+        if IsValid(ply) then 
+            ply:PrintMessage(HUD_PRINTCONSOLE, msg) 
+        else 
+            print(msg) 
+        end
+    end)
+end)
+
+-- Принудительно сохранить
+concommand.Add("nextrp_savesupply", function(ply, cmd, args)
+    if IsValid(ply) and not ply:IsAdmin() then 
+        ply:PrintMessage(HUD_PRINTCONSOLE, "[Supply] У вас нет прав!")
+        return 
+    end
+    
+    NextRP.Ammunition:SaveSupplyPoints()
+    
+    local msg = "[Supply] Сохранено: " .. NextRP.Ammunition:GetSupplyPoints() .. " очков для " .. currentMap
+    if IsValid(ply) then 
+        ply:PrintMessage(HUD_PRINTCONSOLE, msg) 
+    end
+    MsgC(Color(0, 255, 0), msg .. "\n")
+end)
+
+-- Перезагрузить из БД
+concommand.Add("nextrp_reloadsupply", function(ply, cmd, args)
+    if IsValid(ply) and not ply:IsAdmin() then 
+        ply:PrintMessage(HUD_PRINTCONSOLE, "[Supply] У вас нет прав!")
+        return 
+    end
+    
+    NextRP.Ammunition:LoadSupplyPoints(function(points)
+        local msg = "[Supply] Перезагружено: " .. points .. " очков для " .. currentMap
+        if IsValid(ply) then 
+            ply:PrintMessage(HUD_PRINTCONSOLE, msg) 
+        end
+        MsgC(Color(0, 255, 0), msg .. "\n")
+    end)
+end)
+
+-- ============================================================================
+-- ПОКУПКА БОЕПРИПАСОВ (напрямую выдаёт патроны игроку, добавляет в инвентарь)
+-- ============================================================================
+
+netstream.Hook("NextRP::Ammunition::BuyAmmo", function(ply, data)
+    if not IsValid(ply) or not ply:Alive() then return end
+    
+    -- Проверка дистанции до NPC
+    if data.entIndex then
+        local ent = Entity(data.entIndex)
+        if IsValid(ent) and ent:GetClass() == "nextrp_ammunition" then
+            if ply:GetPos():DistToSqr(ent:GetPos()) > 300*300 then return end
+        end
+    end
+
+    local itemID = data.itemID
+    
+    local itemDef = NextRP.Inventory:GetItemData(itemID)
+    if not itemDef then
+        ply:SendMessage(MESSAGE_TYPE_ERROR, "Предмет не найден!")
+        return
+    end
+    
+    
+    local price = itemDef.supplyPrice or 0
+    local currentSupply = NextRP.Ammunition:GetSupplyPoints()
+    
+    -- Проверка достаточности очков
+    if currentSupply < price then
+        ply:SendMessage(MESSAGE_TYPE_ERROR, "На базе недостаточно очков снабжения!")
+        return
+    end
+    
+    -- Добавляем предмет в инвентарь (как stackable)
+    local success, err = NextRP.Inventory:AddItem(ply, itemID, 1)
+    
+    if success then
+        -- Списываем очки и сохраняем в БД
+        NextRP.Ammunition:SetSupplyPoints(currentSupply - price, true)
+        ply:SendMessage(MESSAGE_TYPE_SUCCESS, "Вы получили: " .. itemDef.name)
+        ply:EmitSound("items/ammo_pickup.wav")
+    else
+        ply:SendMessage(MESSAGE_TYPE_ERROR, "Ошибка: " .. (err or "Инвентарь полон"))
+    end
+end)
+
+-- ============================================================================
+-- ИСПОЛЬЗОВАНИЕ БОЕПРИПАСОВ ИЗ ИНВЕНТАРЯ
+-- ============================================================================
+
+-- Хук для использования предмета боеприпасов
+hook.Add("NextRP::Inventory::UseItem", "NextRP::UseAmmoItem", function(ply, itemID, itemData)
+    if not itemData.isAmmoItem then return end
+    
+    local ammoType = itemData.ammoType
+    local ammoAmount = itemData.ammoAmount or 30
+    
+    if ammoType and ammoAmount then
+        ply:GiveAmmo(ammoAmount, ammoType, true)
+        ply:EmitSound("items/ammo_pickup.wav")
+        ply:SendMessage(MESSAGE_TYPE_SUCCESS, "Вы использовали " .. itemData.name .. " (+" .. ammoAmount .. " патронов)")
+        return true -- Предмет израсходован
+    end
+end)
+
+MsgC(Color(0, 255, 100), "[NextRP] Модуль снабжения (sv) загружен! Карта: " .. currentMap .. "\n")

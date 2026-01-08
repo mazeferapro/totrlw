@@ -123,20 +123,24 @@ function NextRP.Inventory:LoadCharacterInventory(pPlayer, callback)
                         local slotIndex = tonumber(row.slot_index)
                         local itemData = util.JSONToTable(row.item_data)
                         
-                        self.PlayerEquipment[steamID][charID][slotType] = self.PlayerEquipment[steamID][charID][slotType] or {}
-                        self.PlayerEquipment[steamID][charID][slotType][slotIndex] = itemData
-
-                        -- [FIX] Выдаем оружие если оно есть в слоте при загрузке
-                        local regItem = self:GetItemData(itemData.itemID)
-                        if regItem and regItem.weaponClass then
-                            pPlayer:Give(regItem.weaponClass)
+                        if itemData then
+                            self.PlayerEquipment[steamID][charID][slotType] = self.PlayerEquipment[steamID][charID][slotType] or {}
+                            self.PlayerEquipment[steamID][charID][slotType][slotIndex] = itemData
                         end
                     end
                 end
-                
+
                 -- Загружаем разблокированные слоты
                 MySQLite.query(string.format("SELECT * FROM nextrp_unlocked_slots WHERE character_id = %d", charID), function(unlockedResult)
                     if not IsValid(pPlayer) then return end
+                    
+                    -- [FIX] Проверяем что персонаж не сменился
+                    local currentCharID = self:GetCharacterID(pPlayer)
+                    if currentCharID ~= charID then
+                        MsgC(Color(255, 0, 0), "[NextRP] Inventory Load ABORTED: Character changed! Expected: " .. charID .. ", Got: " .. tostring(currentCharID) .. "\n")
+                        if callback then callback(false) end
+                        return
+                    end
                     
                     self.UnlockedSlots[steamID] = self.UnlockedSlots[steamID] or {}
                     self.UnlockedSlots[steamID][charID] = {}
@@ -147,15 +151,49 @@ function NextRP.Inventory:LoadCharacterInventory(pPlayer, callback)
                         end
                     end
                     
+                    -- [FIX] Выдаём оружие ПОСЛЕ полной загрузки
+                    local equipData = self.PlayerEquipment[steamID] and self.PlayerEquipment[steamID][charID]
+                    if equipData then
+                        for slotType, slots in pairs(equipData) do
+                            for slotIndex, itemData in pairs(slots) do
+                                if itemData and itemData.itemID then
+                                    local regItem = self:GetItemData(itemData.itemID)
+                                    if regItem and regItem.weaponClass then
+                                        if not pPlayer:HasWeapon(regItem.weaponClass) then
+                                            pPlayer:Give(regItem.weaponClass)
+                                            MsgC(Color(0, 255, 0), "[NextRP] Gave weapon: " .. regItem.weaponClass .. "\n")
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    
                     -- Отправляем данные клиенту
                     self:SyncInventoryToClient(pPlayer)
                     
+                    -- [FIX] Снимаем флаг загрузки
+                    pPlayer.NextRP_Inventory_IsLoading = false
+                    
                     MsgC(Color(0, 200, 200), "[NextRP] Инвентарь загружен для CharID: " .. charID .. "\n")
+                    NextRP.Inventory.CachedCharID[steamID] = charID
                     
                     if callback then callback(true) end
                 end)
             end)
         end)
+    end)
+    timer.Simple(0.5, function()
+        if IsValid(pPlayer) then
+            local weapons = {}
+            for _, wep in pairs(pPlayer:GetWeapons()) do
+                if IsValid(wep) then
+                    weapons[wep:GetClass()] = true
+                end
+            end
+            NextRP.Inventory.TrackedWeapons[steamID] = weapons
+            MsgC(Color(0, 255, 0), "[NextRP] Weapon tracking initialized with " .. table.Count(weapons) .. " weapons\n")
+        end
     end)
 end
 
@@ -164,6 +202,41 @@ function NextRP.Inventory:SaveCharacterInventory(pPlayer, charID)
     if not IsValid(pPlayer) or not charID then return end
     
     local steamID = pPlayer:SteamID64()
+    
+    -- [FIX] Не сохраняем во время загрузки
+    if pPlayer.NextRP_Inventory_IsLoading then
+        MsgC(Color(255, 200, 0), "[NextRP] Inventory Save BLOCKED: Loading in progress for CharID: " .. charID .. "\n")
+        return
+    end
+    
+    -- [FIX] Проверяем что данные вообще существуют в памяти
+    local hasData = (self.PlayerEquipment[steamID] and self.PlayerEquipment[steamID][charID]) or
+                    (self.PlayerInventories[steamID] and self.PlayerInventories[steamID][charID])
+    
+    if not hasData then
+        MsgC(Color(255, 0, 0), "[NextRP] Inventory Save BLOCKED: No data in memory for CharID: " .. charID .. " (preventing data loss)\n")
+        return
+    end
+    
+    -- [FIX] Логируем что сохраняем
+    MsgC(Color(255, 255, 0), "[NextRP DEBUG] SaveCharacterInventory called for CharID: " .. tostring(charID) .. "\n")
+    MsgC(Color(255, 255, 0), "[NextRP DEBUG] IsLoading: " .. tostring(pPlayer.NextRP_Inventory_IsLoading) .. "\n")
+
+    local equipData = self.PlayerEquipment[steamID] and self.PlayerEquipment[steamID][charID]
+    if equipData then
+        local count = 0
+        for slotType, slots in pairs(equipData) do
+            for slotIndex, item in pairs(slots) do
+                if item then 
+                    count = count + 1 
+                    MsgC(Color(0, 255, 0), "[NextRP DEBUG] Equipment slot " .. slotType .. "[" .. slotIndex .. "]: " .. tostring(item.itemID) .. "\n")
+                end
+            end
+        end
+        MsgC(Color(0, 255, 0), "[NextRP DEBUG] Total equipment items: " .. count .. "\n")
+    else
+        MsgC(Color(255, 0, 0), "[NextRP DEBUG] NO EQUIPMENT DATA IN MEMORY!\n")
+    end
     
     -- Сохраняем основной инвентарь
     local invData = self.PlayerInventories[steamID] and self.PlayerInventories[steamID][charID]
@@ -189,12 +262,12 @@ function NextRP.Inventory:SaveCharacterInventory(pPlayer, charID)
         ))
     end
     
-    -- Сохраняем снаряжение
-    local equipData = self.PlayerEquipment[steamID] and self.PlayerEquipment[steamID][charID]
+    -- [FIX] Сохраняем снаряжение - ТОЛЬКО реальные предметы, БЕЗ DELETE для nil
     if equipData then
         for slotType, slots in pairs(equipData) do
             for slotIndex, itemData in pairs(slots) do
-                if itemData then
+                -- [FIX] Сохраняем ТОЛЬКО если есть данные, НЕ удаляем nil
+                if itemData and itemData.itemID then
                     MySQLite.query(string.format(
                         "INSERT INTO nextrp_equipment (character_id, slot_type, slot_index, item_data) VALUES (%d, %s, %d, %s) ON DUPLICATE KEY UPDATE item_data = %s",
                         charID,
@@ -203,19 +276,12 @@ function NextRP.Inventory:SaveCharacterInventory(pPlayer, charID)
                         MySQLite.SQLStr(util.TableToJSON(itemData)),
                         MySQLite.SQLStr(util.TableToJSON(itemData))
                     ))
-                else
-                    MySQLite.query(string.format(
-                        "DELETE FROM nextrp_equipment WHERE character_id = %d AND slot_type = %s AND slot_index = %d",
-                        charID,
-                        MySQLite.SQLStr(slotType),
-                        slotIndex
-                    ))
                 end
             end
         end
     end
     
-    -- Сохраняем разблокированные слоты
+    -- Сохраняем разблокированные слоты (без изменений)
     local unlockedData = self.UnlockedSlots[steamID] and self.UnlockedSlots[steamID][charID]
     if unlockedData then
         for slotType, count in pairs(unlockedData) do
@@ -570,17 +636,39 @@ function NextRP.Inventory:EquipItem(pPlayer, uniqueID, slotType, slotIndex, from
         return false 
     end
     
-    -- Сохраняем данные предмета ДО удаления
-    local savedItemID = item.itemID
-    local savedAmount = item.amount or 1
-    
-    -- Инициализируем снаряжение если нужно
+    -- ============================================
+    -- ИСПРАВЛЕНИЕ: ПРОВЕРКА НА ДУБЛИКАТЫ
+    -- Нельзя экипировать одинаковые предметы в разные слоты
+    -- ============================================
     self.PlayerEquipment[steamID] = self.PlayerEquipment[steamID] or {}
     self.PlayerEquipment[steamID][charID] = self.PlayerEquipment[steamID][charID] or {}
     self.PlayerEquipment[steamID][charID][slotType] = self.PlayerEquipment[steamID][charID][slotType] or {}
     
+    local equip = self.PlayerEquipment[steamID][charID]
+    if equip[slotType] then
+        for existingSlotIndex, existingItem in pairs(equip[slotType]) do
+            if existingItem and existingItem.itemID == item.itemID then
+                -- Проверяем что это не тот же самый слот
+                if tonumber(existingSlotIndex) ~= tonumber(slotIndex) then
+                    print("[Inventory] EquipItem: предмет уже экипирован в слоте", existingSlotIndex)
+                    if pPlayer.SendMessage then
+                        pPlayer:SendMessage(MESSAGE_TYPE_ERROR, "Этот предмет уже экипирован!")
+                    else
+                        pPlayer:ChatPrint("Этот предмет уже экипирован!")
+                    end
+                    return false
+                end
+            end
+        end
+    end
+    -- ============================================
+    
+    -- Сохраняем данные предмета ДО удаления
+    local savedItemID = item.itemID
+    local savedAmount = item.amount or 1
+    
     -- Если слот занят, возвращаем предмет в инвентарь
-    local currentItem = self.PlayerEquipment[steamID][charID][slotType][slotIndex]
+    local currentItem = equip[slotType][slotIndex]
     if currentItem then
         local success, err = self:AddItem(pPlayer, currentItem.itemID, currentItem.amount or 1)
         if not success then
@@ -603,7 +691,7 @@ function NextRP.Inventory:EquipItem(pPlayer, uniqueID, slotType, slotIndex, from
     end
     
     -- Экипируем сохранённые данные
-    self.PlayerEquipment[steamID][charID][slotType][slotIndex] = {
+    equip[slotType][slotIndex] = {
         itemID = savedItemID,
         amount = savedAmount
     }
@@ -611,9 +699,7 @@ function NextRP.Inventory:EquipItem(pPlayer, uniqueID, slotType, slotIndex, from
     print("[Inventory] EquipItem: успешно экипирован", savedItemID, "в слот", slotType, slotIndex)
 
     if itemDataForSize.weaponClass then
-    pPlayer:Give(itemDataForSize.weaponClass)
-    -- Опционально: можно сразу переключиться на него
-    -- pPlayer:SelectWeapon(itemDataForSize.weaponClass) 
+        pPlayer:Give(itemDataForSize.weaponClass)
     end
     
     self:SyncInventoryToClient(pPlayer)
@@ -634,32 +720,130 @@ function NextRP.Inventory:UnequipItem(pPlayer, slotType, slotIndex)
     local item = equip[slotType][slotIndex]
     local itemData = self:GetItemData(item.itemID)
     
-    -- [ДОБАВЛЕНО] Сначала проверяем, есть ли место в инвентаре
-    -- Имитируем добавление, чтобы проверить место (или полагаемся на AddItem)
-    -- Но лучше сначала забрать оружие, если AddItem вернет false - вернем оружие обратно? 
-    -- Проще: если AddItem успешен, то забираем оружие.
-    
     -- Пробуем добавить в инвентарь
     local success, err = self:AddItem(pPlayer, item.itemID, item.amount)
     if not success then 
-        -- [ДОБАВЛЕНО] Сообщаем игроку об ошибке
         pPlayer:ChatPrint("Не удалось снять предмет: " .. (err or "нет места"))
         return false, err 
     end
     
-    -- [ДОБАВЛЕНО] Если предмет добавлен в инвентарь успешно, забираем оружие из рук
+    -- Забираем оружие из рук
     if itemData and itemData.weaponClass then
         pPlayer:StripWeapon(itemData.weaponClass)
     end
 
-    -- Убираем из экипировки в БД/Памяти
+    -- [FIX] Убираем из памяти
     equip[slotType][slotIndex] = nil
+    
+    -- [FIX] Явно удаляем из БД сразу
+    MySQLite.query(string.format(
+        "DELETE FROM nextrp_equipment WHERE character_id = %d AND slot_type = %s AND slot_index = %d",
+        charID,
+        MySQLite.SQLStr(slotType),
+        slotIndex
+    ))
+    
+    self:SyncInventoryToClient(pPlayer)
+    -- [FIX] НЕ вызываем SaveCharacterInventory здесь - мы уже удалили из БД напрямую
+    
+    return true
+end
+
+function NextRP.Inventory:MergeStacks(pPlayer, sourceUniqueID, targetUniqueID, fromStorage, toStorage)
+    if not IsValid(pPlayer) then return false, "Игрок не найден" end
+    
+    local charID = self:GetCharacterID(pPlayer)
+    if not charID then return false, "Персонаж не загружен" end
+    
+    local steamID = pPlayer:SteamID64()
+    
+    -- Получаем источник
+    local sourceStorage
+    if fromStorage then
+        sourceStorage = self.PlayerStorages[steamID] and self.PlayerStorages[steamID][charID]
+    else
+        sourceStorage = self.PlayerInventories[steamID] and self.PlayerInventories[steamID][charID]
+    end
+    
+    -- Получаем цель
+    local targetStorage
+    if toStorage then
+        targetStorage = self.PlayerStorages[steamID] and self.PlayerStorages[steamID][charID]
+    else
+        targetStorage = self.PlayerInventories[steamID] and self.PlayerInventories[steamID][charID]
+    end
+    
+    if not sourceStorage or not sourceStorage.items[sourceUniqueID] then
+        return false, "Исходный предмет не найден"
+    end
+    
+    if not targetStorage or not targetStorage.items[targetUniqueID] then
+        return false, "Целевой предмет не найден"
+    end
+    
+    local sourceItem = sourceStorage.items[sourceUniqueID]
+    local targetItem = targetStorage.items[targetUniqueID]
+    
+    -- Проверяем что это одинаковые предметы
+    if sourceItem.itemID ~= targetItem.itemID then
+        return false, "Разные типы предметов"
+    end
+    
+    local itemData = self:GetItemData(sourceItem.itemID)
+    if not itemData then return false, "Данные предмета не найдены" end
+    
+    -- Проверяем стакаемость
+    if not itemData.stackable then
+        return false, "Этот предмет нельзя складывать"
+    end
+    
+    local maxStack = itemData.maxStack or 99
+    
+    -- Проверяем есть ли место в целевом стаке
+    if targetItem.amount >= maxStack then
+        return false, "Целевой стак полон"
+    end
+    
+    -- Рассчитываем сколько можем добавить
+    local canAdd = math.min(sourceItem.amount, maxStack - targetItem.amount)
+    
+    -- Добавляем к целевому стаку
+    targetItem.amount = targetItem.amount + canAdd
+    
+    -- Убираем из исходного
+    sourceItem.amount = sourceItem.amount - canAdd
+    
+    -- Если исходный стак опустел, удаляем его
+    if sourceItem.amount <= 0 then
+        -- Освобождаем ячейки
+        for x = sourceItem.posX, sourceItem.posX + itemData.width - 1 do
+            for y = sourceItem.posY, sourceItem.posY + itemData.height - 1 do
+                sourceStorage.grid[x .. "_" .. y] = nil
+            end
+        end
+        sourceStorage.items[sourceUniqueID] = nil
+    end
     
     self:SyncInventoryToClient(pPlayer)
     self:SaveCharacterInventory(pPlayer, charID)
     
     return true
 end
+
+netstream.Hook("NextRP::InventoryMergeStacks", function(pPlayer, data)
+    local success, err = NextRP.Inventory:MergeStacks(
+        pPlayer, 
+        data.sourceUniqueID, 
+        data.targetUniqueID, 
+        data.fromStorage, 
+        data.toStorage
+    )
+    
+    if not success then
+        pPlayer:SendMessage(MESSAGE_TYPE_ERROR, err or "Не удалось объединить стаки")
+    end
+end)
+
 -- ============================================================================
 -- ВЫБРОС ПРЕДМЕТОВ
 -- ============================================================================
@@ -705,6 +889,12 @@ end
 
 function NextRP.Inventory:DropAllItems(pPlayer, deathPos)
     if not IsValid(pPlayer) then return end
+    
+    -- [FIX] Не дропаем во время загрузки
+    if pPlayer.NextRP_Inventory_IsLoading then
+        MsgC(Color(255, 200, 0), "[NextRP] DropAllItems BLOCKED: Loading in progress\n")
+        return
+    end
     
     local charID = self:GetCharacterID(pPlayer)
     if not charID then 
@@ -793,22 +983,88 @@ end
 hook.Add("NextRP::CharacterSelected", "NextRP::Inventory_OnCharSelected", function(pPlayer, newCharID, oldCharID)
     if not IsValid(pPlayer) then return end
     
-    -- Сохраняем инвентарь старого персонажа
+    local steamID = pPlayer:SteamID64()
+    
+    -- [FIX] Устанавливаем флаг СРАЗУ
+    pPlayer.NextRP_Inventory_IsLoading = true
+    
+    -- Сохраняем инвентарь старого персонажа ТОЛЬКО если он был загружен
     if oldCharID and tonumber(oldCharID) > 0 then
-        NextRP.Inventory:SaveCharacterInventory(pPlayer, tonumber(oldCharID))
+        local oldID = tonumber(oldCharID)
+        
+        -- Проверяем что данные старого персонажа существуют
+        local hasOldData = NextRP.Inventory.PlayerEquipment[steamID] and NextRP.Inventory.PlayerEquipment[steamID][oldID]
+        
+        if hasOldData then
+            pPlayer.NextRP_Inventory_IsLoading = false
+            NextRP.Inventory:SaveCharacterInventory(pPlayer, oldID)
+            pPlayer.NextRP_Inventory_IsLoading = true
+        end
+        
+        -- Очищаем данные старого персонажа из памяти
+        if NextRP.Inventory.PlayerInventories[steamID] then
+            NextRP.Inventory.PlayerInventories[steamID][oldID] = nil
+        end
+        if NextRP.Inventory.PlayerStorages[steamID] then
+            NextRP.Inventory.PlayerStorages[steamID][oldID] = nil
+        end
+        if NextRP.Inventory.PlayerEquipment[steamID] then
+            NextRP.Inventory.PlayerEquipment[steamID][oldID] = nil
+        end
+        if NextRP.Inventory.UnlockedSlots[steamID] then
+            NextRP.Inventory.UnlockedSlots[steamID][oldID] = nil
+        end
     end
     
-    -- Загружаем инвентарь нового персонажа
+    -- Обновляем кэш charID
+    NextRP.Inventory.CachedCharID[steamID] = tonumber(newCharID)
+end)
+
+hook.Add("PlayerSpawn", "NextRP::Inventory_LoadAfterSpawn", function(pPlayer)
+    if not IsValid(pPlayer) then return end
+    if not pPlayer.NextRP_Inventory_IsLoading then return end
+    
+    local charID = NextRP.Inventory:GetCharacterID(pPlayer)
+    if not charID then return end
+    
+    -- Загружаем с небольшой задержкой после спавна
     timer.Simple(0.5, function()
-        if IsValid(pPlayer) then
-            NextRP.Inventory:LoadCharacterInventory(pPlayer)
-        end
+        if not IsValid(pPlayer) then return end
+        
+        local currentCharID = NextRP.Inventory:GetCharacterID(pPlayer)
+        if currentCharID ~= charID then return end
+        
+        NextRP.Inventory:LoadCharacterInventory(pPlayer, function(success)
+            if IsValid(pPlayer) then
+                pPlayer.NextRP_Inventory_IsLoading = false
+            end
+        end)
     end)
 end)
 
+
+NextRP.Inventory.CachedCharID = NextRP.Inventory.CachedCharID or {}
+
+-- Заменить хук PlayerDisconnected:
 hook.Add("PlayerDisconnected", "NextRP::Inventory_OnDisconnect", function(pPlayer)
     if not IsValid(pPlayer) then return end
-    NextRP.Inventory:SaveCharacterInventory(pPlayer)
+    
+    local steamID = pPlayer:SteamID64()
+    
+    -- Используем кэшированный charID если NVar уже недоступен
+    local charID = pPlayer:GetNVar('nrp_charid')
+    if not charID or tonumber(charID) <= 0 then
+        charID = NextRP.Inventory.CachedCharID[steamID]
+    end
+    
+    if charID and tonumber(charID) > 0 then
+        -- Принудительно снимаем флаг загрузки для сохранения
+        pPlayer.NextRP_Inventory_IsLoading = false
+        NextRP.Inventory:SaveCharacterInventory(pPlayer, tonumber(charID))
+    end
+    
+    -- Очищаем кэш
+    NextRP.Inventory.CachedCharID[steamID] = nil
 end)
 
 hook.Add("PlayerDeath", "NextRP::Inventory_OnDeath", function(victim, inflictor, attacker)
@@ -1281,4 +1537,518 @@ concommand.Add("inv_give", function(ply, cmd, args)
     
     -- Перенаправляем на основную команду
     RunConsoleCommand("nextrp_giveitem", unpack(args))
+end)
+
+
+-- ============================================================================
+-- ФИКС ГРАНАТ v2 - добавить в конец sv_inventory.lua
+-- Более агрессивная проверка слотов
+-- ============================================================================
+
+-- Таблица для отслеживания оружия игроков
+NextRP.Inventory.TrackedWeapons = NextRP.Inventory.TrackedWeapons or {}
+
+-- Функция очистки слота по классу оружия
+function NextRP.Inventory:ClearEquipmentSlotByWeapon(pPlayer, weaponClass)
+    if not IsValid(pPlayer) then return false end
+    
+    -- [FIX] Не очищаем во время загрузки!
+    if pPlayer.NextRP_Inventory_IsLoading then 
+        MsgC(Color(255, 200, 0), "[NextRP Inventory] ClearEquipmentSlot BLOCKED - loading in progress\n")
+        return false 
+    end
+    
+    local charID = self:GetCharacterID(pPlayer)
+    if not charID then return false end
+    
+    local steamID = pPlayer:SteamID64()
+    local equip = self.PlayerEquipment[steamID] and self.PlayerEquipment[steamID][charID]
+    if not equip then return false end
+    
+    local cleared = false
+    
+    -- Проверяем все слоты снаряжения
+    for slotType, slots in pairs(equip) do
+        for slotIndex, item in pairs(slots) do
+            if item and item.itemID then
+                local itemData = self:GetItemData(item.itemID)
+                if itemData and itemData.weaponClass and itemData.weaponClass == weaponClass then
+                    -- Освобождаем слот
+                    equip[slotType][slotIndex] = nil
+                    cleared = true
+                    
+                    -- Удаляем из БД
+                    MySQLite.query(string.format(
+                        "DELETE FROM nextrp_equipment WHERE character_id = %d AND slot_type = %s AND slot_index = %d",
+                        charID,
+                        MySQLite.SQLStr(slotType),
+                        slotIndex
+                    ))
+                    
+                    MsgC(Color(255, 200, 0), "[NextRP Inventory] Слот " .. slotType .. "[" .. slotIndex .. "] освобождён (оружие " .. weaponClass .. ")\n")
+                end
+            end
+        end
+    end
+    
+    if cleared then
+        self:SyncInventoryToClient(pPlayer)
+    end
+    
+    return cleared
+end
+
+-- Функция проверки всех слотов игрока
+function NextRP.Inventory:ValidateEquipmentSlots(pPlayer)
+    if not IsValid(pPlayer) then return end
+    
+    -- [FIX] Не валидируем во время загрузки!
+    if pPlayer.NextRP_Inventory_IsLoading then return end
+    
+    local charID = self:GetCharacterID(pPlayer)
+    if not charID then return end
+    
+    local steamID = pPlayer:SteamID64()
+    local equip = self.PlayerEquipment[steamID] and self.PlayerEquipment[steamID][charID]
+    if not equip then return end
+    
+    local needSync = false
+    
+    for slotType, slots in pairs(equip) do
+        for slotIndex, item in pairs(slots) do
+            if item and item.itemID then
+                local itemData = self:GetItemData(item.itemID)
+                if itemData and itemData.weaponClass then
+                    -- Проверяем есть ли оружие у игрока
+                    if not pPlayer:HasWeapon(itemData.weaponClass) then
+                        -- Очищаем слот
+                        equip[slotType][slotIndex] = nil
+                        needSync = true
+                        
+                        MySQLite.query(string.format(
+                            "DELETE FROM nextrp_equipment WHERE character_id = %d AND slot_type = %s AND slot_index = %d",
+                            charID,
+                            MySQLite.SQLStr(slotType),
+                            slotIndex
+                        ))
+                        
+                        MsgC(Color(255, 150, 0), "[NextRP Inventory] Очищен слот " .. slotType .. "[" .. slotIndex .. "] - оружие " .. itemData.weaponClass .. " отсутствует\n")
+                    end
+                end
+            end
+        end
+    end
+    
+    if needSync then
+        self:SyncInventoryToClient(pPlayer)
+    end
+end
+
+-- Обновляем список оружия игрока
+local function UpdateTrackedWeapons(ply)
+    if not IsValid(ply) then return end
+    
+    local steamID = ply:SteamID64()
+    local weapons = {}
+    
+    for _, wep in pairs(ply:GetWeapons()) do
+        if IsValid(wep) then
+            weapons[wep:GetClass()] = true
+        end
+    end
+    
+    NextRP.Inventory.TrackedWeapons[steamID] = weapons
+end
+
+-- Проверяем какое оружие пропало
+local function CheckMissingWeapons(ply)
+    if not IsValid(ply) then return end
+    
+    -- [FIX] Не проверяем во время загрузки инвентаря!
+    if ply.NextRP_Inventory_IsLoading then return end
+    
+    -- [FIX] Не проверяем если персонаж не загружен
+    local charID = NextRP.Inventory:GetCharacterID(ply)
+    if not charID then return end
+    
+    local steamID = ply:SteamID64()
+    local oldWeapons = NextRP.Inventory.TrackedWeapons[steamID] or {}
+    local currentWeapons = {}
+    
+    for _, wep in pairs(ply:GetWeapons()) do
+        if IsValid(wep) then
+            currentWeapons[wep:GetClass()] = true
+        end
+    end
+    
+    -- Ищем пропавшее оружие
+    for wepClass, _ in pairs(oldWeapons) do
+        if not currentWeapons[wepClass] then
+            -- Оружие пропало - очищаем слот
+            NextRP.Inventory:ClearEquipmentSlotByWeapon(ply, wepClass)
+        end
+    end
+    
+    -- Обновляем список
+    NextRP.Inventory.TrackedWeapons[steamID] = currentWeapons
+end
+
+
+
+-- Инициализация при загрузке персонажа
+hook.Add("NextRP::CharacterLoaded", "NextRP::Inventory::InitTracking", function(ply)
+    if IsValid(ply) then
+        timer.Simple(1, function()
+            if IsValid(ply) then
+                UpdateTrackedWeapons(ply)
+            end
+        end)
+    end
+end)
+
+-- При спавне игрока
+hook.Add("PlayerSpawn", "NextRP::Inventory::SpawnTracking", function(ply)
+    timer.Simple(0.5, function()
+        if IsValid(ply) then
+            UpdateTrackedWeapons(ply)
+        end
+    end)
+end)
+
+-- При получении оружия
+hook.Add("PlayerCanPickupWeapon", "NextRP::Inventory::PickupTracking", function(ply, wep)
+    timer.Simple(0.1, function()
+        if IsValid(ply) then
+            UpdateTrackedWeapons(ply)
+        end
+    end)
+end)
+
+-- Хук на выдачу оружия
+hook.Add("WeaponEquip", "NextRP::Inventory::EquipTracking", function(wep, ply)
+    timer.Simple(0.1, function()
+        if IsValid(ply) then
+            UpdateTrackedWeapons(ply)
+        end
+    end)
+end)
+
+-- Команда для ручной проверки
+concommand.Add("nextrp_validate_slots", function(ply, cmd, args)
+    if IsValid(ply) then
+        NextRP.Inventory:ValidateEquipmentSlots(ply)
+        ply:ChatPrint("[Inventory] Слоты проверены и синхронизированы")
+    end
+end)
+
+-- Админ команда для проверки всех игроков
+concommand.Add("nextrp_validate_all_slots", function(ply, cmd, args)
+    if IsValid(ply) and not ply:IsSuperAdmin() then return end
+    
+    for _, p in ipairs(player.GetAll()) do
+        NextRP.Inventory:ValidateEquipmentSlots(p)
+    end
+    
+    local msg = "[Inventory] Слоты всех игроков проверены"
+    if IsValid(ply) then
+        ply:ChatPrint(msg)
+    else
+        print(msg)
+    end
+end)
+
+MsgC(Color(0, 255, 100), "[NextRP Inventory] Фикс гранат v2 загружен!\n")
+
+netstream.Hook("NextRP::InventoryTakeAllFromBag", function(pPlayer, data)
+    local ent = Entity(data.entIndex)
+    if not IsValid(ent) or ent:GetClass() ~= "nextrp_deadbug" then return end
+    if ent:GetPos():Distance(pPlayer:GetPos()) > NextRP.Inventory.Config.PickupRadius then return end
+    
+    local items = ent:GetItems()
+    if not items or table.Count(items) == 0 then return end
+    
+    local takenItems = {}
+    local failedItems = {}
+    
+    -- Пытаемся взять все предметы
+    for uniqueID, item in pairs(items) do
+        local success, err = NextRP.Inventory:AddItem(pPlayer, item.itemID, item.amount)
+        if success then
+            table.insert(takenItems, uniqueID)
+        else
+            failedItems[uniqueID] = item
+        end
+    end
+    
+    -- Удаляем взятые предметы из сумки
+    for _, uniqueID in ipairs(takenItems) do
+        items[uniqueID] = nil
+    end
+    
+    -- Обновляем сумку
+    if IsValid(ent) and ent.SetItems then
+        ent:SetItems(failedItems)
+    end
+    
+    -- Проверяем остались ли предметы
+    if table.Count(failedItems) == 0 then
+        -- Удаляем сумку
+        if IsValid(ent) then ent:Remove() end
+        
+        netstream.Start(pPlayer, "NextRP::UpdateDeathBag", {
+            entIndex = data.entIndex,
+            items = {}
+        })
+        
+        pPlayer:SendMessage(MESSAGE_TYPE_SUCCESS, "Все предметы забраны!")
+    else
+        -- Обновляем UI с оставшимися предметами
+        netstream.Start(pPlayer, "NextRP::UpdateDeathBag", {
+            entIndex = data.entIndex,
+            items = failedItems
+        })
+        
+        pPlayer:SendMessage(MESSAGE_TYPE_ERROR, "Не хватило места для всех предметов!")
+    end
+end)
+
+function NextRP.Inventory:SplitStack(pPlayer, uniqueID, splitAmount, fromStorage)
+    if not IsValid(pPlayer) then return false, "Игрок не найден" end
+    
+    local charID = self:GetCharacterID(pPlayer)
+    if not charID then return false, "Персонаж не загружен" end
+    
+    local steamID = pPlayer:SteamID64()
+    
+    -- Получаем хранилище
+    local storage
+    local gridWidth, gridHeight
+    
+    if fromStorage then
+        storage = self.PlayerStorages[steamID] and self.PlayerStorages[steamID][charID]
+        gridWidth = self.Config.StorageGridWidth
+        gridHeight = self.Config.StorageGridHeight
+    else
+        storage = self.PlayerInventories[steamID] and self.PlayerInventories[steamID][charID]
+        gridWidth = self.Config.GridWidth
+        gridHeight = self.Config.GridHeight
+    end
+    
+    if not storage or not storage.items[uniqueID] then 
+        return false, "Предмет не найден" 
+    end
+    
+    local item = storage.items[uniqueID]
+    local itemData = self:GetItemData(item.itemID)
+    
+    if not itemData then return false, "Данные предмета не найдены" end
+    if not itemData.stackable then return false, "Этот предмет нельзя разделить" end
+    if not item.amount or item.amount <= 1 then return false, "Недостаточно предметов для разделения" end
+    if splitAmount <= 0 or splitAmount >= item.amount then return false, "Неверное количество" end
+    
+    -- Ищем свободное место для нового стака
+    local posX, posY = self:FindFreeSlot(storage.grid, gridWidth, gridHeight, itemData)
+    if not posX then
+        return false, "Недостаточно места для нового стака"
+    end
+    
+    -- Уменьшаем количество в оригинальном стаке
+    item.amount = item.amount - splitAmount
+    
+    -- Создаём новый стак
+    local newUniqueID = tostring(os.time()) .. "_" .. math.random(10000, 99999)
+    
+    -- Занимаем ячейки для нового стака
+    for x = posX, posX + itemData.width - 1 do
+        for y = posY, posY + itemData.height - 1 do
+            storage.grid[x .. "_" .. y] = newUniqueID
+        end
+    end
+    
+    -- Добавляем новый стак
+    storage.items[newUniqueID] = {
+        itemID = item.itemID,
+        amount = splitAmount,
+        posX = posX,
+        posY = posY
+    }
+    
+    self:SyncInventoryToClient(pPlayer)
+    self:SaveCharacterInventory(pPlayer, charID)
+    
+    return true
+end
+
+netstream.Hook("NextRP::InventorySplitStack", function(pPlayer, data)
+    local success, err = NextRP.Inventory:SplitStack(pPlayer, data.uniqueID, data.amount, data.fromStorage)
+    
+    if not success then
+        pPlayer:SendMessage(MESSAGE_TYPE_ERROR, err or "Не удалось разделить стак")
+    end
+end)
+
+function NextRP.Inventory:QuickTransfer(pPlayer, uniqueID, fromStorage, toStorage)
+    if not IsValid(pPlayer) then return false, "Игрок не найден" end
+    
+    local charID = self:GetCharacterID(pPlayer)
+    if not charID then return false, "Персонаж не загружен" end
+    
+    local steamID = pPlayer:SteamID64()
+    
+    -- Получаем источник
+    local sourceStorage
+    if fromStorage then
+        sourceStorage = self.PlayerStorages[steamID] and self.PlayerStorages[steamID][charID]
+    else
+        sourceStorage = self.PlayerInventories[steamID] and self.PlayerInventories[steamID][charID]
+    end
+    
+    if not sourceStorage or not sourceStorage.items[uniqueID] then
+        return false, "Предмет не найден"
+    end
+    
+    local item = sourceStorage.items[uniqueID]
+    local itemData = self:GetItemData(item.itemID)
+    
+    if not itemData then return false, "Данные предмета не найдены" end
+    
+    -- Получаем целевое хранилище
+    local targetStorage, targetGridWidth, targetGridHeight
+    if toStorage then
+        targetStorage = self.PlayerStorages[steamID] and self.PlayerStorages[steamID][charID]
+        targetGridWidth = self.Config.StorageGridWidth
+        targetGridHeight = self.Config.StorageGridHeight
+    else
+        targetStorage = self.PlayerInventories[steamID] and self.PlayerInventories[steamID][charID]
+        targetGridWidth = self.Config.GridWidth
+        targetGridHeight = self.Config.GridHeight
+    end
+    
+    if not targetStorage then
+        -- Создаём хранилище если его нет
+        if toStorage then
+            self.PlayerStorages[steamID] = self.PlayerStorages[steamID] or {}
+            self.PlayerStorages[steamID][charID] = {grid = {}, items = {}}
+            targetStorage = self.PlayerStorages[steamID][charID]
+        else
+            return false, "Хранилище не найдено"
+        end
+    end
+    
+    -- Если предмет стакается, пробуем добавить к существующим
+    if itemData.stackable then
+        for targetUniqueID, targetItem in pairs(targetStorage.items) do
+            if targetItem.itemID == item.itemID and targetItem.amount < itemData.maxStack then
+                local canAdd = math.min(item.amount, itemData.maxStack - targetItem.amount)
+                targetItem.amount = targetItem.amount + canAdd
+                item.amount = item.amount - canAdd
+                
+                if item.amount <= 0 then
+                    -- Освобождаем ячейки
+                    for x = item.posX, item.posX + itemData.width - 1 do
+                        for y = item.posY, item.posY + itemData.height - 1 do
+                            sourceStorage.grid[x .. "_" .. y] = nil
+                        end
+                    end
+                    sourceStorage.items[uniqueID] = nil
+                    
+                    self:SyncInventoryToClient(pPlayer)
+                    self:SaveCharacterInventory(pPlayer, charID)
+                    return true
+                end
+            end
+        end
+    end
+    
+    -- Ищем свободное место
+    local posX, posY = self:FindFreeSlot(targetStorage.grid, targetGridWidth, targetGridHeight, itemData)
+    if not posX then
+        return false, "Недостаточно места"
+    end
+    
+    -- Освобождаем старые ячейки
+    for x = item.posX, item.posX + itemData.width - 1 do
+        for y = item.posY, item.posY + itemData.height - 1 do
+            sourceStorage.grid[x .. "_" .. y] = nil
+        end
+    end
+    
+    -- Удаляем из источника
+    sourceStorage.items[uniqueID] = nil
+    
+    -- Занимаем новые ячейки
+    for x = posX, posX + itemData.width - 1 do
+        for y = posY, posY + itemData.height - 1 do
+            targetStorage.grid[x .. "_" .. y] = uniqueID
+        end
+    end
+    
+    -- Добавляем в цель
+    targetStorage.items[uniqueID] = {
+        itemID = item.itemID,
+        amount = item.amount,
+        posX = posX,
+        posY = posY
+    }
+    
+    self:SyncInventoryToClient(pPlayer)
+    self:SaveCharacterInventory(pPlayer, charID)
+    
+    return true
+end
+
+netstream.Hook("NextRP::InventoryQuickTransfer", function(pPlayer, data)
+    local success, err = NextRP.Inventory:QuickTransfer(pPlayer, data.uniqueID, data.fromStorage, data.toStorage)
+    
+    if not success then
+        pPlayer:SendMessage(MESSAGE_TYPE_ERROR, err or "Не удалось перенести предмет")
+    end
+end)
+
+concommand.Add("nextrp_debug_equip", function(ply)
+    if not IsValid(ply) then return end
+    
+    local steamID = ply:SteamID64()
+    local charID = NextRP.Inventory:GetCharacterID(ply)
+    
+    print("========== DEBUG EQUIPMENT ==========")
+    print("SteamID:", steamID)
+    print("CharID:", charID)
+    print("IsLoading:", ply.NextRP_Inventory_IsLoading)
+    print("")
+    
+    -- Данные в памяти
+    print("=== MEMORY DATA ===")
+    local equipData = NextRP.Inventory.PlayerEquipment[steamID]
+    if equipData then
+        print("PlayerEquipment[steamID] exists")
+        if equipData[charID] then
+            print("PlayerEquipment[steamID][charID] exists")
+            for slotType, slots in pairs(equipData[charID]) do
+                for slotIndex, item in pairs(slots) do
+                    print("  Slot:", slotType, "[" .. slotIndex .. "]", "Item:", item and item.itemID or "NIL")
+                end
+            end
+        else
+            print("PlayerEquipment[steamID][charID] = NIL!")
+        end
+    else
+        print("PlayerEquipment[steamID] = NIL!")
+    end
+    
+    print("")
+    
+    -- Данные в БД
+    print("=== DATABASE DATA ===")
+    MySQLite.query("SELECT * FROM nextrp_equipment WHERE character_id = " .. (charID or 0), function(result)
+        if result then
+            for _, row in ipairs(result) do
+                print("  DB Row:", row.slot_type, "[" .. row.slot_index .. "]", "Data:", row.item_data)
+            end
+            print("  Total rows:", #result)
+        else
+            print("  NO DATA IN DATABASE!")
+        end
+        print("======================================")
+    end)
 end)

@@ -3,7 +3,7 @@ include("shared.lua")
 function ENT:Draw()
     self:DrawModel()
     
-    local pos = self:GetPos() + self:GetUp() * 50
+    local pos = self:GetPos() + self:GetUp() * 75
     local ang = LocalPlayer():EyeAngles()
     ang:RotateAroundAxis(ang:Forward(), 90)
     ang:RotateAroundAxis(ang:Right(), 90)
@@ -24,7 +24,7 @@ function ENT:Draw()
         surface.DrawOutlinedRect(-w/2, -h/2, w, h, 2)
         
         -- Заголовок
-        draw.SimpleText("📦 Личное хранилище", "PawsUI.Text.Normal", 0, -15, ColorAlpha(NextRP.Style.Theme.Accent, alpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        draw.SimpleText("Личное хранилище", "PawsUI.Text.Normal", 0, -15, ColorAlpha(NextRP.Style.Theme.Accent, alpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         
         -- Подсказка
         draw.SimpleText("[E] Открыть", "PawsUI.Text.Small", 0, 15, ColorAlpha(Color(200, 200, 200), alpha), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
@@ -32,5 +32,5 @@ function ENT:Draw()
 end
 
 netstream.Hook("NextRP::OpenStorage", function()
-    NextRP.Inventory:OpenUI()
+    NextRP.Inventory:OpenUI(true)
 end)
