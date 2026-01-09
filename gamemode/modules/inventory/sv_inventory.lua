@@ -4,14 +4,30 @@
 ]]--
 
 AddCSLuaFile("sh_inventory.lua")
-AddCSLuaFile("sh_items_weapons.lua")
 include("sh_inventory.lua")
-include("sh_items_weapons.lua")
 
 NextRP.Inventory.PlayerInventories = {}
 NextRP.Inventory.PlayerStorages = {}
 NextRP.Inventory.PlayerEquipment = {}
 NextRP.Inventory.UnlockedSlots = {}
+
+-- Проверка может ли игрок взаимодействовать с сумкой смерти
+local function CanInteractWithDeathBag(pPlayer, ent)
+    if not IsValid(ent) or ent:GetClass() ~= "nextrp_deadbug" then
+        return false, "Недействительная сумка"
+    end
+    
+    -- Проверяем по ID персонажа
+    local ownerCharID = ent:GetOwnerCharID()
+    if ownerCharID and ownerCharID > 0 then
+        local playerCharID = pPlayer:GetNVar('nrp_charid')
+        if not playerCharID or playerCharID ~= ownerCharID then
+            return false, "Это не сумка вашего персонажа!"
+        end
+    end
+    
+    return true
+end
 
 -- ============================================================================
 -- ИНИЦИАЛИЗАЦИЯ БД
@@ -957,9 +973,15 @@ function NextRP.Inventory:DropAllItems(pPlayer, deathPos)
     
     ent:SetItems(itemsCopy)
     ent:SetOwnerSteamID(steamID)
+    ent:SetOwnerCharID(charID)  -- Для проверки владельца по персонажу
+    ent:SetOwnerName(pPlayer:GetNVar('nrp_fullname') or pPlayer:Nick())  -- Имя персонажа для отображения
     ent:SetItemCount(table.Count(itemsCopy))
     
     print("[Inventory] DropAllItems: сумка создана на позиции", deathPos)
+    
+    -- ============================================
+    -- ОЧИСТКА ПАМЯТИ
+    -- ============================================
     
     -- Очищаем инвентарь игрока
     if inventory then
@@ -972,9 +994,33 @@ function NextRP.Inventory:DropAllItems(pPlayer, deathPos)
         self.PlayerEquipment[steamID][charID] = {}
     end
     
+    -- ============================================
+    -- ОЧИСТКА БД (НОВОЕ!)
+    -- ============================================
+    
+    -- Удаляем инвентарь из БД
+    MySQLite.query(string.format(
+        "UPDATE nextrp_inventory SET grid_data = %s WHERE character_id = %d",
+        MySQLite.SQLStr(util.TableToJSON({grid = {}, items = {}})),
+        charID
+    ))
+    
+    -- Удаляем экипировку из БД
+    MySQLite.query(string.format(
+        "DELETE FROM nextrp_equipment WHERE character_id = %d",
+        charID
+    ))
+    
+    print("[Inventory] DropAllItems: БД очищена для CharID:", charID)
+    
+    -- ============================================
+    
     self:SyncInventoryToClient(pPlayer)
-    self:SaveCharacterInventory(pPlayer, charID)
+    -- НЕ вызываем SaveCharacterInventory - мы уже всё сохранили напрямую
 end
+
+
+
 
 -- ============================================================================
 -- ХУКИ
@@ -1151,6 +1197,13 @@ netstream.Hook("NextRP::InventoryPickupItem", function(pPlayer, entIndex)
             pPlayer:SendMessage(MESSAGE_TYPE_ERROR, err or "Не удалось подобрать предмет")
         end
     elseif ent:GetClass() == "nextrp_deadbug" then
+        -- Проверка владельца по ID персонажа
+        local canInteract, errMsg = CanInteractWithDeathBag(pPlayer, ent)
+        if not canInteract then
+            pPlayer:SendMessage(MESSAGE_TYPE_ERROR, errMsg)
+            return
+        end
+        
         -- Открываем интерфейс сумки смерти
         netstream.Start(pPlayer, "NextRP::OpenDeathBag", {
             entIndex = entIndex,
@@ -1159,10 +1212,18 @@ netstream.Hook("NextRP::InventoryPickupItem", function(pPlayer, entIndex)
     end
 end)
 
+
 netstream.Hook("NextRP::InventoryTakeFromBag", function(pPlayer, data)
     local ent = Entity(data.entIndex)
     if not IsValid(ent) or ent:GetClass() ~= "nextrp_deadbug" then return end
     if ent:GetPos():Distance(pPlayer:GetPos()) > NextRP.Inventory.Config.PickupRadius then return end
+    
+    -- Проверка владельца по ID персонажа
+    local canInteract, errMsg = CanInteractWithDeathBag(pPlayer, ent)
+    if not canInteract then
+        pPlayer:SendMessage(MESSAGE_TYPE_ERROR, errMsg)
+        return
+    end
     
     local items = ent:GetItems()
     local item = items[data.uniqueID]
@@ -1172,23 +1233,18 @@ netstream.Hook("NextRP::InventoryTakeFromBag", function(pPlayer, data)
     if success then
         items[data.uniqueID] = nil
         
-        -- Если энтити существует, обновляем в ней данные
         if IsValid(ent) and ent.SetItems then
             ent:SetItems(items)
         end
         
-        -- Проверяем, остался ли что-то в сумке
         if table.Count(items) == 0 then
-            -- [ВАЖНО] Удаляем сумку
             if IsValid(ent) then ent:Remove() end
             
-            -- [ВАЖНО] Отправляем клиенту пустую таблицу, чтобы он закрыл окно (см. код клиента выше)
             netstream.Start(pPlayer, "NextRP::UpdateDeathBag", {
                 entIndex = data.entIndex,
                 items = {} 
             })
         else
-            -- Если предметы еще есть, просто обновляем UI
             netstream.Start(pPlayer, "NextRP::UpdateDeathBag", {
                 entIndex = data.entIndex,
                 items = items
@@ -1764,13 +1820,19 @@ netstream.Hook("NextRP::InventoryTakeAllFromBag", function(pPlayer, data)
     if not IsValid(ent) or ent:GetClass() ~= "nextrp_deadbug" then return end
     if ent:GetPos():Distance(pPlayer:GetPos()) > NextRP.Inventory.Config.PickupRadius then return end
     
+    -- Проверка владельца по ID персонажа
+    local canInteract, errMsg = CanInteractWithDeathBag(pPlayer, ent)
+    if not canInteract then
+        pPlayer:SendMessage(MESSAGE_TYPE_ERROR, errMsg)
+        return
+    end
+    
     local items = ent:GetItems()
     if not items or table.Count(items) == 0 then return end
     
     local takenItems = {}
     local failedItems = {}
     
-    -- Пытаемся взять все предметы
     for uniqueID, item in pairs(items) do
         local success, err = NextRP.Inventory:AddItem(pPlayer, item.itemID, item.amount)
         if success then
@@ -1780,19 +1842,15 @@ netstream.Hook("NextRP::InventoryTakeAllFromBag", function(pPlayer, data)
         end
     end
     
-    -- Удаляем взятые предметы из сумки
     for _, uniqueID in ipairs(takenItems) do
         items[uniqueID] = nil
     end
     
-    -- Обновляем сумку
     if IsValid(ent) and ent.SetItems then
         ent:SetItems(failedItems)
     end
     
-    -- Проверяем остались ли предметы
     if table.Count(failedItems) == 0 then
-        -- Удаляем сумку
         if IsValid(ent) then ent:Remove() end
         
         netstream.Start(pPlayer, "NextRP::UpdateDeathBag", {
@@ -1802,7 +1860,6 @@ netstream.Hook("NextRP::InventoryTakeAllFromBag", function(pPlayer, data)
         
         pPlayer:SendMessage(MESSAGE_TYPE_SUCCESS, "Все предметы забраны!")
     else
-        -- Обновляем UI с оставшимися предметами
         netstream.Start(pPlayer, "NextRP::UpdateDeathBag", {
             entIndex = data.entIndex,
             items = failedItems

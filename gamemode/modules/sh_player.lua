@@ -52,3 +52,10 @@ function pMeta:Faction()
     return self:GetNVar('nrp_faction') or 1
 end
 
+hook.Add("HUDShouldDraw", "DisableDefaultChatBox", function(name)
+    -- "CHudChat" — это стандартное окно истории сообщений
+    if name == "CHudChat" then
+        return false
+    end
+end)
+

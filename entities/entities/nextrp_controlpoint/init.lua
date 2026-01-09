@@ -31,9 +31,9 @@ function ENT:Initialize()
 end
 
 local npcTable = {
-	'npc_summe_b1',
-	'npc_summe_b1_heavy',
-	'npc_summe_b1_sniper',
+	'b1_battledroid_f',
+	'b1_battledroid_heavy_f',
+	'b1_battledroid_specialist_f',
 }
 
 local function EntRemove(eTable)

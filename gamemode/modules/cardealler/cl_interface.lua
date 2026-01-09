@@ -2,6 +2,8 @@ local ui = {}
 
 local MainFrame = MainFrame or nil
 
+NextRP.CarDealer = NextRP.CarDealer or {}
+
 function tprint (tbl, indent)
   if not indent then indent = 0 end
   local toprint = string.rep(" ", indent) .. "{\r\n"
@@ -57,8 +59,11 @@ local factions = {
 function ui:open(tVehs, eEnt, tPlatforms, tVehicles, tCarList, nFaction)
     if IsValid(MainFrame) then MainFrame:Remove() end
 
+    local supply = GetGlobalInt("NextRP_SupplyPoints", 0)
+    local maxSupply = NextRP.Ammunition.Config.MaxSupply or 100000
+
     MainFrame = vgui.Create('PawsUI.Frame')
-    MainFrame:SetTitle('Вызов транспорта')
+    MainFrame:SetTitle('Вызов транспорта'.. " | Снабжение " .. supply .. " / " .. maxSupply)
     MainFrame:SetSize(960, 720)
     MainFrame:MakePopup()
     MainFrame:Center()
@@ -241,7 +246,8 @@ function ui:open(tVehs, eEnt, tPlatforms, tVehicles, tCarList, nFaction)
                 local selectButton = vgui.Create('PawsUI.Button', content)
                 selectButton:Dock(BOTTOM)
                 selectButton:DockMargin(4,4,7,4)
-                selectButton:SetLabel('Вызвать')
+                local price = NextRP.CarDealer:GetVehicleCost(v)
+                selectButton:SetLabel('Вызвать за ' .. price .. " очков снабжения.")
 
                 selectButton:On('DoClick', function(s)
                     local can = true

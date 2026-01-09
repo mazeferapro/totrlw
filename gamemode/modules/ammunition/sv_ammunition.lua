@@ -16,7 +16,7 @@ hook.Add("DatabaseInitialized", "NextRP::Ammunition_DB_Init", function()
     MySQLite.query([[
         CREATE TABLE IF NOT EXISTS nextrp_supply_points (
             map_name VARCHAR(128) NOT NULL PRIMARY KEY,
-            supply_points INT DEFAULT 10000,
+            supply_points INT DEFAULT 100000,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )
     ]], function()
@@ -124,16 +124,160 @@ hook.Add("InitPostEntity", "NextRP::SupplyLoadFallback", function()
 end)
 
 -- ============================================================================
--- ТАЙМЕР РЕГЕНЕРАЦИИ
+-- КОНФИГУРАЦИЯ БОНУСА ОТ ТОЧЕК ЗАХВАТА
 -- ============================================================================
 
+-- Добавь эти настройки в NextRP.Ammunition.Config (в sh_ammunition.lua) или используй локально:
+local ControlPointBonus = {
+    BaseRegen = 50,           -- Базовая регенерация (без точек)
+    BonusPerPoint = 25,       -- Бонус за каждую захваченную точку
+    MaxBonusMultiplier = 3,   -- Максимальный множитель (x3 от базы)
+    TargetFaction = CONTROL_GAR, -- Какая фракция получает бонус (ВАР)
+}
+
+-- ============================================================================
+-- ФУНКЦИЯ ПОДСЧЁТА ЗАХВАЧЕННЫХ ТОЧЕК
+-- ============================================================================
+
+function NextRP.Ammunition:GetCapturedPointsCount(faction)
+    faction = faction or CONTROL_GAR
+    
+    local count = 0
+    local total = 0
+    
+    -- Ищем все точки захвата
+    local controlPoints = ents.FindByClass("nextrp_controlpoint")
+    
+    for _, point in ipairs(controlPoints) do
+        if IsValid(point) then
+            total = total + 1
+            if point:GetControl() == faction then
+                count = count + 1
+            end
+        end
+    end
+    
+    return count, total
+end
+
+-- ============================================================================
+-- ФУНКЦИЯ РАСЧЁТА РЕГЕНЕРАЦИИ С БОНУСОМ
+-- ============================================================================
+
+function NextRP.Ammunition:CalculateRegenAmount()
+    local baseRegen = ControlPointBonus.BaseRegen
+    local bonusPerPoint = ControlPointBonus.BonusPerPoint
+    local maxMultiplier = ControlPointBonus.MaxBonusMultiplier
+    local targetFaction = ControlPointBonus.TargetFaction
+    
+    local capturedCount, totalPoints = self:GetCapturedPointsCount(targetFaction)
+    
+    -- Рассчитываем бонус
+    local bonus = capturedCount * bonusPerPoint
+    local totalRegen = baseRegen + bonus
+    
+    -- Ограничиваем максимальным множителем
+    local maxRegen = baseRegen * maxMultiplier
+    totalRegen = math.min(totalRegen, maxRegen)
+    
+    return totalRegen, capturedCount, totalPoints
+end
+
+-- ============================================================================
+-- ОБНОВЛЁННЫЙ ТАЙМЕР РЕГЕНЕРАЦИИ
+-- ============================================================================
+
+-- Удаляем старый таймер если есть
+if timer.Exists("NextRP::SupplyRegen") then
+    timer.Remove("NextRP::SupplyRegen")
+end
+
+-- Создаём новый таймер с учётом захваченных точек
 timer.Create("NextRP::SupplyRegen", cfg.RegenInterval, 0, function()
     local current = NextRP.Ammunition:GetSupplyPoints()
+    
     if current < cfg.MaxSupply then
-        local newValue = math.min(current + cfg.RegenAmount, cfg.MaxSupply)
+        -- Получаем регенерацию с учётом бонуса от точек
+        local regenAmount, capturedPoints, totalPoints = NextRP.Ammunition:CalculateRegenAmount()
+        
+        local newValue = math.min(current + regenAmount, cfg.MaxSupply)
         NextRP.Ammunition:SetSupplyPoints(newValue, true)
+        
+        -- Логируем для отладки
+        MsgC(Color(100, 200, 255), 
+            string.format("[Supply Regen] +%d очков (Точек ВАР: %d/%d) | Всего: %d/%d\n", 
+                regenAmount, capturedPoints, totalPoints, newValue, cfg.MaxSupply))
     end
 end)
+
+-- ============================================================================
+-- КОНСОЛЬНЫЕ КОМАНДЫ ДЛЯ ОТЛАДКИ
+-- ============================================================================
+
+-- Показать информацию о бонусе от точек
+concommand.Add("nextrp_supply_bonus", function(ply, cmd, args)
+    local regenAmount, capturedPoints, totalPoints = NextRP.Ammunition:CalculateRegenAmount()
+    local baseRegen = ControlPointBonus.BaseRegen
+    local bonus = regenAmount - baseRegen
+    
+    local msg = string.format(
+        "\n[Supply Bonus Info]\n" ..
+        "--------------------\n" ..
+        "Точек захвачено ВАР: %d / %d\n" ..
+        "Базовая регенерация: %d\n" ..
+        "Бонус от точек: +%d\n" ..
+        "Итого регенерация: %d очков за %d сек\n" ..
+        "--------------------",
+        capturedPoints, totalPoints,
+        baseRegen,
+        bonus,
+        regenAmount, cfg.RegenInterval
+    )
+    
+    if IsValid(ply) then
+        ply:PrintMessage(HUD_PRINTCONSOLE, msg)
+    else
+        print(msg)
+    end
+end)
+
+-- Показать статус всех точек
+concommand.Add("nextrp_controlpoints_status", function(ply, cmd, args)
+    local controlPoints = ents.FindByClass("nextrp_controlpoint")
+    
+    local msg = "\n[Control Points Status]\n" .. string.rep("-", 50) .. "\n"
+    
+    local factionNames = {
+        [CONTROL_GAR] = "ВАР",
+        [CONTROL_CIS] = "КНС",
+        [CONTROL_NATO] = "NATO",
+        [CONTROL_HEADHUNTERS] = "Наёмники",
+        [CONTROL_NONE] = "Нейтральная",
+        [-1] = "Не захвачена",
+    }
+    
+    for i, point in ipairs(controlPoints) do
+        if IsValid(point) then
+            local control = point:GetControl()
+            local factionName = factionNames[control] or "Неизвестно"
+            local title = point:GetTitle() or "Без названия"
+            
+            msg = msg .. string.format("%d. %s - %s\n", i, title, factionName)
+        end
+    end
+    
+    msg = msg .. string.rep("-", 50)
+    
+    if IsValid(ply) then
+        ply:PrintMessage(HUD_PRINTCONSOLE, msg)
+    else
+        print(msg)
+    end
+end)
+
+MsgC(Color(0, 255, 100), "[NextRP Supply] Бонус регенерации от точек захвата активирован!\n")
+
+
 
 -- ============================================================================
 -- ПЕРИОДИЧЕСКОЕ СОХРАНЕНИЕ (на случай крашей)

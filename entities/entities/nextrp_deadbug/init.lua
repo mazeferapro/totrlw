@@ -38,6 +38,16 @@ end
 function ENT:Use(activator, caller)
     if not IsValid(activator) or not activator:IsPlayer() then return end
     
+    -- Проверка владельца по ID персонажа
+    local ownerCharID = self:GetOwnerCharID()
+    if ownerCharID and ownerCharID > 0 then
+        local activatorCharID = activator:GetNVar('nrp_charid')
+        if not activatorCharID or activatorCharID ~= ownerCharID then
+            activator:SendMessage(MESSAGE_TYPE_ERROR, "Это не сумка вашего персонажа!")
+            return
+        end
+    end
+    
     netstream.Start(activator, "NextRP::OpenDeathBag", {
         entIndex = self:EntIndex(),
         items = self.Items

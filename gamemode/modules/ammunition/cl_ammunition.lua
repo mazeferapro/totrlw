@@ -369,9 +369,9 @@ local function Ammunition(entIndex)
         :ClearPaint():Stick(TOP, 2):Background(NextRP.Style.Theme.Background)
         :On('Paint', function(s, w, h)
             local supply = GetGlobalInt("NextRP_SupplyPoints", 0)
-            local maxSupply = NextRP.Ammunition.Config.MaxSupply or 10000
+            local maxSupply = NextRP.Ammunition.Config.MaxSupply or 100000
             makeBar(supply, 0, 0, w, h, Color(100, 200, 255), 0, maxSupply)
-            draw.SimpleText(supply, "PawsUI.Text.Small", w/2, h/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            draw.SimpleText(supply .. " / " .. maxSupply, "PawsUI.Text.Small", w/2, h/2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         end)
     supplyPanel:SetTall(30)
 

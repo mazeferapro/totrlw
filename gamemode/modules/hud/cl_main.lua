@@ -1118,3 +1118,5 @@ hook.Add('HUDDrawTargetID', 'HideDrawTarget', function() return false end)
 hook.Add('DrawDeathNotice', 'HideDrawDeath', function() return 0, 0 end)
 
 print("[NEW HUD] Successfully loaded with enhanced segmented bars and positioning!")
+
+

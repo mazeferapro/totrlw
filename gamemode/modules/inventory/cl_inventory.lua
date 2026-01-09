@@ -13,6 +13,14 @@ NextRP.Inventory.LocalData = {
     unlockedSlots = {}
 }
 
+
+hook.Add("HUDShouldDraw", "DisableDefaultChatBox", function(name)
+    -- "CHudChat" — это стандартное окно истории сообщений
+    if name == "CHudChat" then
+        return false
+    end
+end)
+
 -- UI элементы
 NextRP.Inventory.UI = NextRP.Inventory.UI or nil
 NextRP.Inventory.DraggedItem = nil
